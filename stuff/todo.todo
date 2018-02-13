@@ -1,0 +1,143 @@
+doing now:
+  ☐ dynamic components @crit
+  ✔ simple routing @done(11-02 12:01)
+
+parallel:
+  ☐ decide on selection technique
+    ☐ all of them?
+    ☐ show a front - need paretocalcs
+    ☐ fractional
+    ☐ manual checkbox
+
+pareto:  
+  ☐ databar mean for each
+  ☐ candinfo bar hover - show dim and value
+  ☐ rank.score - decimals = use d3 number methods
+  ✔ embed pareto calcs somehow - import? @done(24-01 16:56)
+  ☐ dimension hover
+  ☐ search for cand - highlight/grow
+
+.    
+sidebar:
+  ☐ sub-componentize
+  ☐ select rather than radio
+  ☐ accordian slideable sidebar components when it gets too big
+  
+.
+ databar/multibar:
+   ☐ height and width of databar
+   ☐ overlay with transparency - share axis
+    
+.    
+ general:
+   ☐ settings/preferences - like what
+   ☐ peers average? useful for databar somehow?
+   ☐ instructions - autoload? ? icon in header
+ 
+.
+css:
+  ☐ how many greys do i need? $g5
+
+.
+csv:
+  ☐ save all data to firebase @normal 
+  ☐ retrieve data from firebase @normal
+  ☐ disable checkboxes on dimInfo after OK
+
+.
+later:  
+  ☐ deal with maxis @low
+  ☐ word cloud map?
+
+.
+js/css learn:
+  ☐ stylus mixins
+  ☐ pug mixins
+  
+.
+=====================================================================  
+
+Archive:
+  ✔ databar - multibar sparkline sorta @done(20-01 08:43)
+  ✔ pareto colouring @done(20-01 09:10)
+  ✔ move candInfo to right @done(20-01 03:04)
+  ✘ single/double click @cancelled(20-01 08:43)
+  ✔ changePage navigation @done(19-01 15:35)
+  ✔ click on node instructions @done(19-01 19:30)
+  ✔ node hover @done(19-01 20:50)
+  ✔ click and hover - compare @done(19-01 20:50)
+  ✔ header colors? @done(19-01 19:31)
+  ✔ styling @done(19-01 19:31)
+  ✔ disable viz until data got @done(19-01 19:31)
+  ✔ toggleable sidebar for vizzes @done(19-01 20:58)
+  ✔ three states: hidden, open, closed @done(19-01 20:58)
+  ✘ light/dark color scheme @cancelled(19-01 19:53)
+  ✘ dynamic instructions for steps - via events/payload @cancelled(19-01 19:54)
+  ✔ replace all hard-coded stylus colors with global vars @done(19-01 15:24)
+  ✔ button outlines? @done(19-01 15:25)
+  ✔ something not right about order/color  @crit @done(15-01 13:39)
+  ✔ dominance relations @done(14-01 20:00)
+  ✔ inferiors? @done(14-01 20:00)
+  ✔ superiors?? @done(17-01 21:21)
+  ✔ all buttons throbbing @done(13-01 03:01)
+  ✔ split togglefullscreen - goFull, unFull @done(12-01 16:40)
+  ✔ put page title in header @done(13-01 03:01)
+  ✔ use header space for < and ? @done(13-01 03:01)
+  ✔ need to listen to events too? or prop from header? @done(13-01 03:01)
+  ✔ needs to emit too coz they're links @done(13-01 03:01)
+  ✔ return of sidebar @done(13-01 03:01)
+  ✔ user-select false @done(13-01 03:02)
+  ✔ move inputs.styl -> make it global, override locally @done(13-01 03:02)
+  ✔ lose da router @done(10-01 14:57)
+  ✔ always there, but sometimes 0, @done(10-01 14:58)
+  ✘ csv controller - see notes @cancelled(10-01 14:57)
+  ✘ has own page events - csvPage @cancelled(10-01 14:57)
+  ✔ global stuff like text in main.styl @done(10-01 02:06)
+  ✔ replace all magic css vals in px -> rem, and vh/vw @done(10-01 02:09)
+  ✔ does everything need to live in same page? - routes @done(10-01 02:09)
+  ✘ .button class or some router links? @cancelled(10-01 02:04)
+  ✔ minimise complexity -> simpler flow @done(09-01 19:25)
+  ✔ minimise css - share global styles? @done(09-01 20:11)
+  ✔ fronts @done(07-01 14:14)
+  ✔ order front by aveRank @done(09-01 01:56)
+  ✔ colour node by ranking @done(09-01 01:56)
+  ✔ dim values in span @done(08-01 23:10)
+  ✔ no sidebar - only for vizzes @done(08-01 18:50)
+  ✔ dim stats in sidebar @done(08-01 23:09)
+  ✔ unscope? @done(08-01 23:16)
+  ✔ page colours when fullscreened @done(07-01 16:58)
+  ✔ height! esp when full screened @done(07-01 16:59)
+  ✔ use flexbox plus vh/vw @done(09-01 01:56)
+  ✔ sets @done(09-01 01:57)
+  ✔ destructuring @done(09-01 01:57)
+  ✔ higher order fns @done(09-01 01:57)
+  ✔ compontentizing @done(06-01 16:04)
+  ✔ should be able to optimise code - try writing fuinctionally? @done(04-01 00:52)
+  ✔ ranking etc.. for ron in case things change @done(04-01 01:30)
+  ✔ save all data to store @normal @done(06-01 16:04)
+  ✘ candidate component? @cancelled(06-01 16:04)
+  ✔ css! @done(04-01 00:43)
+  ✔ css of cells @started(17-12-17 03:49) @done(04-01 00:41) @lasted(11 months 13 days 3 hours 7 minutes 50 seconds)
+  ✔ componentise buildCandData @high @done(31-12 03:08)
+  ✔ we're going to need at least normalise @done(04-01 00:41)
+  ✔ maxis @done(31-12 03:08)
+  ✔ ID @done(31-12 03:08)
+  ✔ custom checkbox (component!) that covers whole cell @done(04-01 00:41)
+  ✔ sort out missing null data items @done(04-01 00:42)
+  ✔ header? @done(31-12 03:08)
+  ✔ hover effects on choosedatasource @done(04-01 00:42)
+  ✔ object methods?? @done(31-12 03:08)
+  ✘ slots for changing contents? @cancelled(04-01 00:42)
+  ✘ iterators @cancelled(04-01 00:42)
+  ✘ maps! @cancelled(04-01 00:42)
+  ✘ show set in vue console, use computed to turn into spread/array and show that @cancelled(04-01 00:42)
+  ✔ autoselect first alpha as ID @done(17-12-16 22:41)
+  ✘ page-controller as alternative to slots -> live in sidebar @cancelled(17-12-16 22:41)
+  ✔ browser shortcuts - need new set? @done(17-12-16 22:39)
+  ✔ buttons in sidebar! @done(17-12-16 22:36)
+  ✔ ID @done(17-12-14 17:40)
+  ✔ welcome button in sidebar @started(17-12-14 22:00) @done(17-12-15 10:43) @lasted(12 hours 43 minutes 53 seconds)
+  ✔ sidebar buttons/links should disappear when sidebar closes @low @done(17-12-14 05:32)
+  ✔ remove max mins from parseFile? @done(17-12-14 05:32)
+  ✔ normalise @done(17-12-14 15:52)
+  ✔ omg - colours! @done(17-12-13 20:55))
