@@ -1,6 +1,6 @@
 # dvz-vue
 
-> HyperDViz - my first Vue.js project - now iwth d3!
+> HyperDViz - my first Vue.js project - now with d3, routing and firebase!
 
 ## Build Setup
 
@@ -15,4 +15,3 @@ npm run dev
 npm run build
 ```
 
-For detailed explanation on how things work, consult the [docs for vue-loader](http://vuejs.github.io/vue-loader).
