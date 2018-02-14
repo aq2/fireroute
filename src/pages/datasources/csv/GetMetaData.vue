@@ -155,7 +155,12 @@ export default {
       // send IDgot event, buildDaData listens
       EventBus.$emit('catMetaBuilt', allDaMeta)
     },
-    
+    hi: (i) => {
+      document.getElementById(i).style.color = 'white'
+    },
+    unhi: (i) => {
+      document.getElementById(i).style.color = 'black'
+    }
   },
     
   created() {

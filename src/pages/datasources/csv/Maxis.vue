@@ -13,6 +13,7 @@ fieldset(id='max')
 
 
 <script>
+
 import {EventBus} from '../../../main'
 
 export default {
@@ -28,6 +29,12 @@ export default {
   },
 
   methods: {
+    main() {
+      // disable criteria fieldset
+      const rankables = document.getElementById('crits')
+      rankables.setAttribute('disabled', 'disabled')
+      // change style to grey? todo
+    },
     changeMaxis: (i) => {
       EventBus.$emit('updateMaxis', i)
     },
@@ -40,8 +47,20 @@ export default {
     unhi: (i) => {
       document.getElementById(i).style.color = 'black'
     }
+  },
+  mounted() {
+    this.main()
   }
+
 
 }
 
 </script>
+
+
+<style lang="stylus" scoped>
+
+.rankables
+  background-color green
+
+</style>

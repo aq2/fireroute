@@ -1,11 +1,13 @@
 <template lang="pug">
 
-#pViz
-  #vizz
-    .front(v-for='front in fronts') 
-      .node(v-for='node in front' :ID='node'
-            @mouseover='showInfo(node)' @click='select(node)') {{candName(node)}}
-        .value(:ID="'nodeSpan'+node")
+#nudder
+  Sidebar
+  #pViz
+    #vizz
+      .front(v-for='front in fronts') 
+        .node(v-for='node in front' :ID='node'
+              @mouseover='showInfo(node)' @click='select(node)') {{candName(node)}}
+          .value(:ID="'nodeSpan'+node")
 
 </template>
 
@@ -13,8 +15,13 @@
 <script>
 
 import {EventBus} from '../../../main'
+import Sidebar from './../../../sidebar/Sidebar'
 
 export default {
+
+components: {
+  Sidebar
+},
 
 computed: {
   candiData() {
@@ -265,7 +272,7 @@ mounted() {
   border 2px solid $g3
   border-radius 0.5rem
   margin 0.4rem 0.75rem 0.25rem 0
-  transition .51s all ease
+  transition 0.5s all ease
   color black
   // text-shadow 0.5px 0.5px blue  
   // font-weight bold
@@ -285,5 +292,9 @@ mounted() {
 .red 
   // background red(#000, 255)
   background blend(rgba(red, 0.5))
+
+#nudder
+  display flex
+
 
 </style>

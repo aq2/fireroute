@@ -1,9 +1,14 @@
 <template lang="pug">
   
 #buildDaData 
-  button(class='saveFB') save to firebase?
+  //- button(class='saveFB') save to firebase?
   .v
   //- button(id='built' class='throb' @click='nextPage(6)') choose Viz Type
+  .tooltip
+    span(class='tooltiptext tooltip-under')
+      | you can save both the CSV and metadata to use later
+    router-link(to='/save2fb' class='throb' id='save2fb') save data to firebase?
+  .h
   router-link(to='/chooseviz' class='throb' id='built') choose Viz Type
 
 </template>

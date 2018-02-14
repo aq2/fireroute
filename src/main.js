@@ -11,21 +11,10 @@ Vue.use(VueResource)
 const router = new VueRouter({ routes })
 
 // firebase
+import './firebase'
 import VueFire from 'vuefire'
 Vue.use(VueFire)
 
-// let config = {
-//   apiKey: "AIzaSyBNYxHpiJt0U-h9Yb3E4MGXVCUBywtFpck",
-//   authDomain: "dvzvue.firebaseapp.com",
-//   databaseURL: "https://dvzvue.firebaseio.com",
-//   projectId: "dvzvue",
-//   storageBucket: "dvzvue.appspot.com",
-//   messagingSenderId: "804794548950"
-// }
-// import Firebase from 'firebase'
-// let appp = Firebase.initializeApp(config)
-// let db = appp.database()
-// let messagesRef = db.ref('massages')
 
 // awesome icons
   // cheaper to import them as you need them

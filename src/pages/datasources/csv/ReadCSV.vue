@@ -17,15 +17,15 @@ methods: {
     const file = evt.target.files[0]
     if (file) {
       const rdr = new FileReader()
-      rdr.onload = e => {this.processFile(e.target.result)}
+      rdr.onload = e => {this.processFile(file.name, e.target.result)}
       rdr.readAsText(file)
     } else {
       alert('failed to load file')
     }
   }, 
   
-  processFile(file) {
-    const lines = file
+  processFile(filename, contents) {
+    const lines = contents
                     .trim()       // remove last empty line
                     .split('\n')
                     .map(line => line.split(','))
@@ -39,6 +39,9 @@ methods: {
       return false
     }
 
+    // console.log('f', filename)
+    
+
     // parse the raw candidates from file
     const rawCands = lines.slice(1)    // remove first headers line
     const {candidates, alphas} = this.deStringVals(rawCands)
@@ -46,7 +49,7 @@ methods: {
 
     // stick data in store
     const catMeta = {dimNames, alphas}
-    const candMeta = {candidates, ignores}
+    const candMeta = {candidates, ignores, filename}
 
     this.$store.dispatch('setDimMeta', catMeta)
     this.$store.dispatch('setCandMeta', candMeta)

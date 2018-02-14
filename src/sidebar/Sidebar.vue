@@ -65,7 +65,7 @@ mounted() {
 <style lang='stylus' scoped>
 
 #sidebar
-  width 0px
+  width 150px
   background $g3
   padding-top 0.25rem
   padding-left 0.5rem

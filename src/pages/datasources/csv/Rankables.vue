@@ -8,7 +8,7 @@ fieldset(id='crits')
   ) 
     label(v-if='!isAlpha(i)')
       input(type='checkbox' :value='i' @click='changeCrits(i)' v-model='crits')
-      span(class='checkmark')
+      span(class='rankables checkmark')
     
 </template>
 
@@ -51,5 +51,3 @@ export default {
 }
 
 </script>
-
-loop[]
