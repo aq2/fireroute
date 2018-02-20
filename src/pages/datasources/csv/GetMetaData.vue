@@ -221,9 +221,9 @@ export default {
   // speckly bug ??
 
 #instructions
-  margin 1rem 0
+  margin 0.5rem 0
   background $g7
-  padding 0.5rem 1rem
+  padding 0.25rem 1rem
   width 600px
 
 

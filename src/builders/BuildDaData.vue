@@ -2,14 +2,16 @@
   
 #buildDaData 
   //- button(class='saveFB') save to firebase?
-  .v
+  //- .v
   //- button(id='built' class='throb' @click='nextPage(6)') choose Viz Type
-  .tooltip
-    span(class='tooltiptext tooltip-under')
-      | you can save both the CSV and metadata to use later
-    router-link(to='/save2fb' class='throb' id='save2fb') save data to firebase?
-  .h
-  router-link(to='/chooseviz' class='throb' id='built') choose Viz Type
+  #instructions
+    p you can save this dataset for future use, or continue to choosing a visualisation
+    .tooltip
+      span(class='tooltiptext tooltip-under')
+        | you can save both the CSV and metadata to use later
+      router-link(to='/save2fb' class='throb' id='save2fb') save data?
+    .h
+    router-link(to='/chooseviz' class='throb' id='built') choose Viz Type
 
 </template>
 
@@ -33,8 +35,8 @@ methods: {
     this.$store.dispatch('setDimData', dimData)
     this.$store.dispatch('setCandiData', candiData)
 
-    // todo want to save it to firebase??
-    // choose Viz?
+    document.getElementById('idd').setAttribute('disabled', 'disabled')
+   
   },
 
   buildAllDimData(dimMeta, candMeta) {
@@ -183,5 +185,11 @@ created() {
   background $g3
   color blue
 
+#instructions
+  margin 0.5rem 0
+  background $g7
+  padding 0.25rem 1rem
+  width 600px
+  // height 400px
 
 </style>

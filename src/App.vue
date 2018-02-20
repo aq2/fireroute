@@ -33,20 +33,20 @@ data() {
     name: ''
   }
 },
-firebase: {
-  // names: namesRef
-},
+// firebase: {
+//   // names: namesRef
+// },
 
 
-methods: {
-  submitName() {
-    namesRef.push({ name: this.name, edit: false })
-    this.name = ''
-  },
-  removeName(key) {
-    namesRef.child(key).remove()
-  }
-}
+// methods: {
+//   submitName() {
+//     namesRef.push({ name: this.name, edit: false })
+//     this.name = ''
+//   },
+//   removeName(key) {
+//     namesRef.child(key).remove()
+//   }
+// }
 }
 </script>
 

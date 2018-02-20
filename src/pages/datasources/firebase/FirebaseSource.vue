@@ -1,24 +1,37 @@
 <template lang="pug">
 
-#fbsrc
+#page
   h1 get data from firebase
   // get list of available datasets on firebase
-
-  #yay
-    .single-post(v-for='blog in blogs')
-      h2 {{blog.author}}
-      p {{blog.msg}}
-      article key {{blog.id}}
+  #current
+    h3 currently saved datasets
+    p(v-if='datasets.length==0') none!
+    ul(v-else)
+      button(v-for='(dataset, i) of datasets' v-bind:key="dataset['.key']"
+             v-bind:idx='i'  @click="loadDataset(dataset['.key'])") 
+        | {{dataset.dataset.adataID}} &nbsp; : &nbsp; {{dataset.dataset.desc}}
+        span(v-if="dataset.dataset.desc==''") -- no description --
+      //- .v
+  
 
 </template>
 
 
 
 <script>
+
+import { datasetsRef } from '../../../firebase'
+
+
 export default {
+  firebase: {
+    datasets: datasetsRef
+  },
   data() {
     return {
-      blogs: []
+      // blogs: [],
+      dataset: {},
+      // idx: -1
     }
   },
   created() {
@@ -39,6 +52,13 @@ export default {
         this.blogs = blogsArray
         
       })
+  },
+  methods: {
+    loadDataset(idx) {
+      alert(idx)
+      this.dataset = datasetsRef.child(idx)
+      // console.log(dataset)
+    }
   }
 }
 </script>
@@ -50,6 +70,10 @@ export default {
 #fbsrc 
   background #888
 
+#page
+  // margin 0.25rem
+  padding 0.5rem
+
 #yay 
   // width 1200px
   margin 0 auto
@@ -58,6 +82,9 @@ export default {
   background #222
   flex-grow 1
   
+button
+  display block
+  margin-bottom 1rem
 
 .single-post 
   padding 10px

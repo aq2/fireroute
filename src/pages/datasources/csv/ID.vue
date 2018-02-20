@@ -41,6 +41,10 @@ export default {
 
   created() {
     this.IDhere = this.firstAlpha
+  },
+
+  mounted() {
+    document.getElementById('max').setAttribute('disabled', 'disabled')
   }
 
 }
