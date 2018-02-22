@@ -26,10 +26,14 @@
 <script>
 
 import ReadCSV from './ReadCSV.vue'
+import {EventBus} from '../../../main'
 
 export default {
   components: {
     ReadCSV,
   },
+  mounted() {
+    EventBus.$emit('changePage', 2)
+},
 }
 </script>

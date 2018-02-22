@@ -30,6 +30,20 @@
 </template>
 
 
+<script>
+
+import {EventBus} from './../../main'
+
+export default {
+  mounted() {
+    EventBus.$emit('changePage', 1)
+  }
+}
+</script>
+
+
+
+
 <style lang="stylus" scoped>
 
 #links

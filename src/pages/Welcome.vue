@@ -38,7 +38,9 @@
 import {EventBus} from './../main'
 
 export default {
-
+mounted() {
+  EventBus.$emit('changePage', 0)
+},
 methods: {
   fullScreen() {
     EventBus.$emit('fullScreen')

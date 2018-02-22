@@ -1,7 +1,8 @@
 doing now:
-  ☐ dynamic components @crit
-  ✔ simple routing @done(11-02 12:01)
+  ☐ fix sidebar for viz
 
+
+  
 parallel:
   ☐ decide on selection technique
     ☐ all of them?
@@ -13,7 +14,6 @@ pareto:
   ☐ databar mean for each
   ☐ candinfo bar hover - show dim and value
   ☐ rank.score - decimals = use d3 number methods
-  ✔ embed pareto calcs somehow - import? @done(24-01 16:56)
   ☐ dimension hover
   ☐ search for cand - highlight/grow
 
@@ -36,13 +36,10 @@ sidebar:
  
 .
 css:
-  ☐ how many greys do i need? $g5
 
 .
 csv:
-  ☐ save all data to firebase @normal 
   ☐ retrieve data from firebase @normal
-  ☐ disable checkboxes on dimInfo after OK
 
 .
 later:  
@@ -58,6 +55,13 @@ js/css learn:
 =====================================================================  
 
 Archive:
+  ✔ dynamic components @crit @done(22-02 16:34)
+  ✔ proper routing @done(22-02 16:34)
+  ✔ embed pareto calcs somehow - import? @done(24-01 16:56)
+  ✔ save all data to firebase @normal @done(22-02 16:35)
+  ✔ disable checkboxes on dimInfo after OK @done(22-02 16:35)
+  ✘ simple routing @cancelled(22-02 16:34)
+  ✘ how many greys do i need? $g5 @cancelled(22-02 16:35)
   ✔ databar - multibar sparkline sorta @done(20-01 08:43)
   ✔ pareto colouring @done(20-01 09:10)
   ✔ move candInfo to right @done(20-01 03:04)
@@ -75,7 +79,7 @@ Archive:
   ✘ dynamic instructions for steps - via events/payload @cancelled(19-01 19:54)
   ✔ replace all hard-coded stylus colors with global vars @done(19-01 15:24)
   ✔ button outlines? @done(19-01 15:25)
-  ✔ something not right about order/color  @crit @done(15-01 13:39)
+  ☐ something not right about order/color  @crit
   ✔ dominance relations @done(14-01 20:00)
   ✔ inferiors? @done(14-01 20:00)
   ✔ superiors?? @done(17-01 21:21)

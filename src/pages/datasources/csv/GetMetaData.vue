@@ -164,6 +164,9 @@ export default {
   },
     
   created() {
+  
+    EventBus.$emit('changePage', 4)
+
     // todo move to main()?
     this.ID = this.alphas[0]
 

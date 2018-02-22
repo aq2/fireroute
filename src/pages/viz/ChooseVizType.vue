@@ -43,7 +43,10 @@ methods: {
   nextPage(newPage) {
     EventBus.$emit('changePage', newPage)
   }
-}
+},
+ mounted() {
+    EventBus.$emit('changePage', 6)
+  }
 
 }
 </script>

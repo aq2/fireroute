@@ -1,6 +1,7 @@
 <template lang="pug">
 
 #links  
+  //- todo - change to router-links
   button(id='welcomeBtn' @click='nextPage(0)')
     icon(name='home' scale=3)
     h1 {{pageTitle}}
@@ -34,41 +35,31 @@ created() {
     this.currentPage = newPage
     switch(newPage) {
       case 0:
-        this.deActivateAll()
-        this.$('welcomeBtn').classList.add('active')
-        this.pageTitle = 'Welcome to HyperDViz'
+        this.changeDaPage('Welcome to HyperDViz', 'welcomeBtn')
         break
       case 1:
-        this.deActivateAll()
-        this.$('dataBtn').classList.add('active')
-        this.pageTitle = 'Get DataSet'
+        this.changeDaPage('Get DataSet', 'dataBtn')
         break
       case 2:
-        this.pageTitle = 'Get Data from CSV'        
+        this.changeDaPage('Get Data from CSV', 'dataBtn')
         break
       case 3:
-        // fb source
+        this.changeDaPage('Get Data from Firebase', 'dataBtn')        
         break
       case 4:
-        this.pageTitle = 'Dimension metaData'
+        this.changeDaPage('Dimension metaData', 'dataBtn')
         break
       case 5:
-        // save2fb
+        this.changeDaPage('Save DataSet to Firebase', 'dataBtn')
         break
       case 6:
-        this.pageTitle = 'Choose Viz Type'
-        this.deActivateAll()
-        this.$('vizBtn').classList.add('active')
+        this.changeDaPage('Choose Viz Type', 'vizBtn')      
         break
       case 7:
-        this.pageTitle = 'Pareto Dominance Plot'
-        this.deActivateAll()
-        this.$('vizBtn').classList.add('active')
+        this.changeDaPage('Pareto Dominance Plot', 'vizBtn')        
         break
       case 8:
-        this.pageTitle = 'Parallel Coords Plot'
-        this.deActivateAll()
-        this.$('vizBtn').classList.add('active')
+        this.changeDaPage('Parallel Coords Plot', 'vizBtn')        
         break
       default:
         // dunno
@@ -90,15 +81,15 @@ methods: {
   deActivateAll() {
     this.$('welcomeBtn').classList.remove('active')
     this.$('dataBtn').classList.remove('active')
-    this.$('vizBtn').classList.remove('active')
-    
+    this.$('vizBtn').classList.remove('active')    
   },
 
+  changeDaPage(pageT, activeBtn) {
+    this.pageTitle = pageT
+    this.deActivateAll()
+    this.$(activeBtn).classList.add('active')
+  },
 
-  // what??
-  nextPage(newPage) {
-    EventBus.$emit('changePage', newPage)
-  }
 },
 
 }
@@ -125,8 +116,6 @@ button
   padding 0.5rem 0 0 1rem
   border-radius 0.5rem
   min-width 80px
-
-
 
 h1
   display none

@@ -22,7 +22,6 @@
 import TheHeader from './header/TheHeader'
 // import { namesRef } from './firebase'
 
-
 export default {
 
 components: {
