@@ -7,7 +7,12 @@ import GetMetaData from './pages/datasources/csv/GetMetaData'
 import Save2Firebase from './pages/datasources/firebase/Save2Firebase'
 import ChooseViz from './pages/viz/ChooseVizType'
 import Pareto from './pages/viz/pareto/Pareto'
-import Parallel from './pages/viz/parallel/ParallelController'
+import Parallel from './pages/viz/parallel/ParallelSelection'
+import AllParallel from './pages/viz/parallel/select/AllParallel'
+import ManParallel from './pages/viz/parallel/select/ManParallel'
+import ParetoParallel from './pages/viz/parallel/select/ParetoParallel'
+import FracParallel from './pages/viz/parallel/select/FracParallel'
+import ParallelViz from './pages/viz/parallel/ParallelViz'
 
 
 export default [
@@ -21,6 +26,11 @@ export default [
   { path: '/save2fb', component: Save2Firebase },
   { path:'/chooseviz', component:ChooseViz },
   { path:'/pareto', component:Pareto },
-  { path:'/parallel', component:Parallel }
+  { path:'/parallel', component:Parallel },
+  { path:'/allPar', component:AllParallel },
+  { path:'/manPar', component:ManParallel },
+  { path:'/paretoPar', component:ParetoParallel },
+  { path:'/fracPar', component:FracParallel },
+  { path:'/parViz', component:ParallelViz },
 
 ]

@@ -5,7 +5,6 @@
   .v
   icon(name='check-square-o' scale=8)
 
-
   #text
     p <b>Select candidates to include in the plot.</b>
     p The plot can get cluttered, so you may not want to view all candidates.
@@ -13,19 +12,19 @@
   .v
 
   #links
-    button(id='all' @click="choose('AllParallel')")
+    router-link(to='/allPar')
       icon(name='arrows-v' scale=4)
-      p select all ({{candL}})
+      p select all ({{candL}} items)
     .h
-    button(id='manual' @click="choose('ManParallel')")
+    router-link(to='/manPar')
       icon(name='check-square-o' scale=4)
       p manual checkbox selection
     .v
-    button(id='front' @click="choose('ParetoParallel')")
+    router-link(to='/paretoPar')
       icon(name='users' scale=4)
       p pareto front peers
     .h
-    button(id='frac' @click="choose('FracParallel')")
+    router-link(to='/fracPar')
       icon(name='percent' scale=4)
       p fractional selection
 
@@ -35,7 +34,6 @@
 
 <script>
 
-import {EventBus} from '../../../main'
 
 export default {
   computed: {
@@ -44,18 +42,17 @@ export default {
     },
     candL() {
       return this.candiData.length
-    }
-
+    },
   },
   methods: {
-    choose(selectionType) {
-      EventBus.$emit('typeSelected', selectionType)
-    }
+    // chooseAllCands() {
+    //   var selection = Array.from(Array(this.candL).keys())
+    //   this.$store.dispatch('setSelectedCands', selection)
+    //   EventBus.$emit('typeSelected', 'AllParallel')      
+    // }
   }
 }
 </script>
-
-
 
 
 <style lang="stylus" scoped>
@@ -63,8 +60,9 @@ export default {
 #links
   width 600px
 
-button
+a
   width 275px
+  min-height 150px
   padding 1rem
   
 
