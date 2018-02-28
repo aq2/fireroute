@@ -1,9 +1,11 @@
 <template lang='pug'>
 
-svg
-  g(style='transform: translate(0, 10px)')
-    path(:d='line')
-
+#graphic
+  svg
+    g(style='transform: translate(0, 10px)')
+      path(:d='line' @click='pclick')
+      path(:d='line2' @click='pclick')
+  //- p(@click="pclick") what the?
 
 </template>
 
@@ -27,6 +29,9 @@ export default {
   },
   
   methods: {
+    pclick() {
+      alert('p clicked')
+    },
     getScales() {
       const x = d3.scaleTime()
                   .range([0, 430])

@@ -1,10 +1,10 @@
 <template lang='pug'>
 
-svg
-  g(style='transform: translate(0, 10px)')
-    path(:d='line')
-
-
+#graphic
+  svg
+    g(style='transform: translate(0, 10px)')
+      path(v-for='(line,i) in lines' :d='line'  @click="pclick(i)")
+  p what
 </template>
 
 
@@ -17,8 +17,10 @@ export default {
   
   data() {
     return {
-      data: [99, 71, 78, 25, 36, 92],
-      line: '',
+      data: [98, 72, 78, 24, 36, 92],
+      data2: [51, 29, 55, 17, 91, 65],
+      lines: ['', '']
+      
     }
   },
 
@@ -27,6 +29,10 @@ export default {
   },
   
   methods: {
+    pclick(lineNo) {
+      alert(lineNo + ' clicked')
+    },
+
     getScales() {
       const x = d3.scaleTime()
                   .range([0, 430])
@@ -49,8 +55,9 @@ export default {
       const path = d3.line()
                      .x((d, i) => scale.x(i))
                      .y(d => scale.y(d))
-      
-      this.line = path(this.data)
+
+      this.lines[0] = path(this.data)
+      this.lines[1] = path(this.data2)
     },
   },
 }

@@ -88,7 +88,7 @@ data() {
   }
 },
 
-// listen to click on node event to change candKeyloop[]
+// listen to click on node event to change candKey
 mounted() {
   EventBus.$on('nodeSelected', ([cand, length]) => {
     this.cand1 = cand

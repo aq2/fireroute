@@ -43,13 +43,6 @@ export default {
     candL() {
       return this.candiData.length
     },
-  },
-  methods: {
-    // chooseAllCands() {
-    //   var selection = Array.from(Array(this.candL).keys())
-    //   this.$store.dispatch('setSelectedCands', selection)
-    //   EventBus.$emit('typeSelected', 'AllParallel')      
-    // }
   }
 }
 </script>
