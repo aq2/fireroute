@@ -12,11 +12,14 @@ import AllParallel from './pages/viz/parallel/select/AllParallel'
 import ManParallel from './pages/viz/parallel/select/ManParallel'
 import ParetoParallel from './pages/viz/parallel/select/ParetoParallel'
 import FracParallel from './pages/viz/parallel/select/FracParallel'
-import ParallelViz from './pages/viz/parallel/ParallelViz'
+// import ParallelViz from './pages/viz/parallel/ParallelViz'
+// import ParallelViz from './pages/viz/parallel/ParRobin'
+import ParallelViz from './pages/viz/parallel/Scratch'
+// import ParallelViz from './pages/viz/parallel/NoobParallelViz'
+
 
 
 export default [
-
   { path:'/', redirect: '/welcome' },
   { path:'/welcome', component:Welcome },
   { path:'/datasource', component:DataSource },
@@ -32,5 +35,4 @@ export default [
   { path:'/paretoPar', component:ParetoParallel },
   { path:'/fracPar', component:FracParallel },
   { path:'/parViz', component:ParallelViz },
-
 ]
