@@ -6,8 +6,23 @@
   #list
     h1 candidates
     .candList
-      .cand(v-for='(name,i) in candNames' )
-        p(:ID="'cand' + i") {{i}} {{name}} 
+      .cand(v-for='(name,i) in candNames')
+        button(class='nameBtn' 
+                :ID="'cand' + i" 
+                @mouseover='fadeCandButton(i)'
+                @mouseout='restoreCandButton(i)'
+                @click='fadeCandPath(i)'
+              ) {{name}}
+            icon(name='eye' class='eye' scale=1.3)
+         
+        button(class='bulbBtn'
+                :ID="'bulb' + i"
+                @mouseover='hiBulbButton(i)'
+                @mouseout='restoreBulbButton(i)'
+                @click='hiCandPath(i)'                
+              )
+            icon(name='lightbulb-o' class='bulb' scale=1.3)
+            
 
 </template>
 
@@ -23,10 +38,15 @@ mounted() {
   this.main()
 },
 
+updated() {
+  this.colorCandButtons()
+},
+
 data() {
   return {
     dimNames: [],
-    candNames: []
+    candNames: [],
+    candColors: []
   }
 },
 
@@ -43,8 +63,44 @@ computed: {
 },
 
 methods: {
-  // todo - could split into sep fns
   main() {
+    this.drawParallel()
+    // this.colorCandButtons()
+  },
+
+  fadeCandPath(i) {
+    var cls = '.path' + i
+    d3.selectAll(cls)
+      .style('stroke', '#234')
+      .style('stroke-width', '1')
+  },
+
+  hiCandPath(i) {
+    var cls = '.path' + i
+    d3.selectAll(cls)
+      .style('stroke', '#fff')
+      .style('stroke-width', '4')
+  },
+
+  fadeCandButton(i) {
+    this.$('cand'+i).style.background = '#234'
+  },
+
+  restoreCandButton(i) {
+    this.$('cand'+i).style.background = this.candColors[i]
+  },
+
+  hiBulbButton(i) {
+    this.$('bulb'+i).style.background = 'yellow'
+  },
+
+  restoreBulbButton(i) {
+    this.$('bulb'+i).style.background = this.candColors[i]
+  },
+
+
+  // todo - could split into sep fns
+  drawParallel() {
     const windowW = window.innerWidth
     const windowH = window.innerHeight
 
@@ -142,13 +198,13 @@ methods: {
     let candScores = [] //, candNames = []
     let candXs = [], candYs = []   // not actually using candXs, but could...
     let selectedCands = this.selectedCands
-    let candColors = []
+    // let candColors = []
 
     // get the candIDs for naming
     selectedCands.forEach((c) => {
       this.candNames.push(this.candiData[c].candID)
       candScores.push([])
-      candColors.push(this.randomColor()())
+      this.candColors.push(this.randomColor()())
     })
     
     // build candidate scores from dimScores
@@ -190,7 +246,7 @@ methods: {
               .attr('d', line(candYs[c]))
               .attr('class', 'path' + c)
               .attr('fill', 'none')
-              .attr('stroke', candColors[c])
+              .attr('stroke', this.candColors[c])
               .attr('stroke-width', '2px')
     }) 
   }, // end main
@@ -237,12 +293,25 @@ methods: {
       h += golden_ratio
       h %= 1
 
-      var myS = d3.randomUniform(0.2, 0.9)()
-      var myL = d3.randomUniform(0.2, 0.8)()
+      var myS = d3.randomUniform(0.2, 1)()
+      var myL = d3.randomUniform(0.3, 1)()
 
       // return hslToRgb(h, 0.5, 0.60)
       return hslToRgb(h, myS, myL)
     }
+  },
+
+  colorCandButtons() {
+    this.selectedCands.forEach((cand, c) => {
+      let candBtn = this.$('cand' + c)
+      let bulbBtn = this.$('bulb' + c)
+      candBtn.style.background = this.candColors[c]
+      bulbBtn.style.background = this.candColors[c]
+    })
+  },
+
+  $(ID) {
+    return document.getElementById(ID)
   },
 
 } // end methods  
@@ -267,26 +336,32 @@ svg
   // position fixed
   // border 2px dotted black
 
-// these don't seem to work
-// would need to use other d3 method
-g.grp3 circle,
-g.grp2 path
-  fill none
-  stroke orange
-
-.grpcircle4
-  stroke white-space
-  fill yellow
-  stroke-width 2
-
-g.tick
-  stroke red
-  fill red
 
 #list
   background $g5
   padding 1rem
   overflow-y auto
+
+button
+  color $g0
+  margin-bottom 0.33rem
+
+.nameBtn
+  width 180px
+
+button:hover
+  background-color $g2
+
+.eye, .bulb
+  color $g0
+  background none
+
+.eye
+  margin-left 0.5rem
+  // margin-top 15px
+
+// .bulbBtn
+//   background blue
 
 
 </style>

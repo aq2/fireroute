@@ -40,6 +40,8 @@ Vue.use(VueFire)
   import 'vue-awesome/icons/arrows-v'
   import 'vue-awesome/icons/percent'
   import 'vue-awesome/icons/users'
+  import 'vue-awesome/icons/eye'
+  import 'vue-awesome/icons/lightbulb-o'
 
   // import 'vue-awesome/icons'  // !! warns bundles all icons = 500kB
   import Icon from 'vue-awesome/components/Icon'
