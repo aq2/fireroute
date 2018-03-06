@@ -5,24 +5,19 @@
     svg(id='mySvg')
   #list
     h1 candidates
-    .candList
+    #candList
       .cand(v-for='(name,i) in candNames')
-        button(class='nameBtn' 
-                :ID="'cand' + i" 
-                @mouseover='fadeCandButton(i)'
-                @mouseout='restoreCandButton(i)'
-                @click='fadeCandPath(i)'
+        button(:ID="'cand' + i" class='nameBtn'
+                @click='eyeClicked(i)'
               ) {{name}}
-            icon(name='eye' class='eye' scale=1.3)
+          icon(name='eye' class='eye' scale=1.3)
          
-        button(class='bulbBtn'
-                :ID="'bulb' + i"
-                @mouseover='hiBulbButton(i)'
-                @mouseout='restoreBulbButton(i)'
-                @click='hiCandPath(i)'                
+        button(:ID="'bulb' + i" class='bulbBtn'
+                @click='bulbClicked(i)'             
               )
-            icon(name='lightbulb-o' class='bulb' scale=1.3)
-            
+          icon(name='lightbulb-o' class='bulb' scale=1.3)
+      button(@click='fadeAll') fade all 
+      button(@click='resetAll') reset all 
 
 </template>
 
@@ -44,9 +39,9 @@ updated() {
 
 data() {
   return {
-    dimNames: [],
-    candNames: [],
-    candColors: []
+    dimNames: [], candNames: [], candColors: [],
+    unfaded: [], lit: [],
+    nCands: 0, nLit: 0, nFaded: 0
   }
 },
 
@@ -59,43 +54,158 @@ computed: {
   },
   candiData() {
     return this.$store.getters.getCandiData
-  }  
+  },  
 },
 
 methods: {
   main() {
+    this.initData()
     this.drawParallel()
-    // this.colorCandButtons()
   },
 
-  fadeCandPath(i) {
+  eyeClicked(i) {
+    if (this.unfaded[i]) {
+      this.fadeEye(i)
+      this.fadePath(i)
+      this.unfaded[i] = false
+      this.nFaded++
+      // might have to unlite if in solo
+      if (this.lit[i]) {
+        this.unLightBulb(i)
+        this.lit[i] = false
+        this.nLit--
+      }
+    } else {
+      // todo if all faded, should lightbulb etc
+      this.lightEye(i)
+      this.lightPath(i)
+      this.unfaded[i] = true
+      if (this.nFaded <= this.nCands) {
+        this.lightBulb(i)
+        this.nLit++
+      }
+      this.nFaded--
+      // might have to light it if in solo mode
+      if (this.nLit > 0) {
+        this.lightBulb(i)
+        this.lit[i] = true
+        this.nLit++
+      }
+    }
+  },
+
+  bulbClicked(i) {
+    // when do i fade all others?
+    if (this.lit[i]) {
+      this.unLightBulb(i)
+      this.fadeEye(i)
+      this.fadePath(i)
+      this.lit[i] = false
+      this.unfaded[i] = false
+      this.nLit--
+    } else {
+      this.lightBulb(i)
+      this.lightEye(i)
+      this.lightPath(i)
+      this.lit[i] = true
+      this.unfaded[i] = true
+      this.nLit++
+      if (this.nLit < 2) {
+        // need to fade all eyes/paths, apart from i of course!
+        this.fadeAllEyes()
+        this.lightEye(i)
+        this.fadeAllPaths()
+        this.lightPath(i)
+        for (var j=0, l=this.nCands; j<l; j++) {
+          this.unfaded[j] = true
+        }
+        this.unfaded[i] = true
+        this.lit[i] = false
+      }
+    }
+  },
+
+  initData() {
+    this.selectedCands.forEach(sC => {
+      this.nCands++
+      this.unfaded.push(true)
+      this.lit.push(false)
+    })
+  },
+
+  fadeEye(i) {
+    this.changeButton(i, 0.5, true)  // dotted=true
+  },
+
+  lightEye(i) {
+    this.changeButton(i, 1, false)  // dotted=false    
+  },
+
+  fadeAll() {
+    for (var i=0, l=this.nCands; i<l; i++) {
+      this.fadeEye(i)
+      this.unfaded[i] = false
+      this.fadePath(i)
+      this.unLightBulb(i)
+      this.lit[i] = false
+    }
+    this.nLit = 0
+    this.nFaded = this.nCands
+  },
+    
+  resetAll() {
+    for (var i=0, l=this.nCands; i<l; i++) {
+      this.lightEye(i)
+      this.unfaded[i] = true
+      this.lightPath(i)
+      this.unLightBulb(i)
+      this.lit[i] = false
+    }
+    this.nLit = 0
+  },
+
+  fadeAllEyes() {
+    for (var i=0, l=this.nCands; i<l; i++) {
+      this.fadeEye(i)
+    }
+  },
+
+  fadeAllPaths() {
+    for (var i=0, l=this.nCands; i<l; i++) {
+      this.fadePath(i)
+    }
+  },
+
+  lightPath(i) {
     var cls = '.path' + i
-    d3.selectAll(cls)
-      .style('stroke', '#234')
-      .style('stroke-width', '1')
+    d3.select(cls)
+      .style('stroke-width', '4')    
+      .style('stroke-dasharray', ('0, 0'))
   },
 
-  hiCandPath(i) {
+  fadePath(i) {
     var cls = '.path' + i
-    d3.selectAll(cls)
-      .style('stroke', '#fff')
-      .style('stroke-width', '4')
+    d3.select(cls)
+      .style('stroke-width', '2')
+      .style('stroke-dasharray', ('5, 5'))
   },
 
-  fadeCandButton(i) {
-    this.$('cand'+i).style.background = '#234'
+  changeButton(i, opac, dotted) {
+    var btn = 'cand' + i
+    this.$(btn).style.opacity = opac
+    this.$(btn).style.border = '3px solid transparent'         
+    if (dotted) {
+      this.$(btn).style.border = '3px dotted #567'    
+    } 
   },
 
-  restoreCandButton(i) {
-    this.$('cand'+i).style.background = this.candColors[i]
+  lightBulb(i) {
+    this.$('bulb'+i).style.opacity = '1'    
   },
 
-  hiBulbButton(i) {
-    this.$('bulb'+i).style.background = 'yellow'
-  },
-
-  restoreBulbButton(i) {
-    this.$('bulb'+i).style.background = this.candColors[i]
+  unLightBulb(i) {
+    // this.$('bulb'+i).style.background = this.candColors[i]
+    this.$('bulb'+i).style.opacity = '0.33'    
   },
 
 
@@ -194,11 +304,9 @@ methods: {
 
     //
     // need to build up candScores from dimScores
-    // probably some fancy map method, but i'll do it noobly
     let candScores = [] //, candNames = []
     let candXs = [], candYs = []   // not actually using candXs, but could...
     let selectedCands = this.selectedCands
-    // let candColors = []
 
     // get the candIDs for naming
     selectedCands.forEach((c) => {
@@ -245,11 +353,11 @@ methods: {
       pathsGrp.append('path')
               .attr('d', line(candYs[c]))
               .attr('class', 'path' + c)
+              .classed('normal', true)
               .attr('fill', 'none')
               .attr('stroke', this.candColors[c])
-              .attr('stroke-width', '2px')
     }) 
-  }, // end main
+  }, 
 
   myXY(x, y) {
     return 'translate(' + x + ',' + y + ')'
@@ -257,7 +365,6 @@ methods: {
 
   // Adapted from martin.ankerl.com
   randomColor() {
-    var golden_ratio = 0.618033988749895
     var h = Math.random()
 
     function hue2rgb(p, q, t) {
@@ -269,7 +376,7 @@ methods: {
       return p
     }
 
-    var hslToRgb = function (h, s, l){
+    var hslToRgb = function (h, s, l) {
       var r, g, b
 
       if (s == 0) {
@@ -290,7 +397,7 @@ methods: {
     }
     
     return function(){
-      h += golden_ratio
+      h += 0.618033988749895
       h %= 1
 
       var myS = d3.randomUniform(0.2, 1)()
@@ -325,17 +432,10 @@ methods: {
 #payge
   margin 1rem
   display flex
-  // background blue
-
-#gfx
-  // margin 1rem
-  // background green
 
 svg
   background-color $g3
   // position fixed
-  // border 2px dotted black
-
 
 #list
   background $g5
@@ -344,7 +444,11 @@ svg
 
 button
   color $g0
-  margin-bottom 0.33rem
+  margin-bottom 0.5rem
+  border 3px solid transparent
+  box-sizing border-box
+  padding 0.5rem
+  margin-right 0.25rem
 
 .nameBtn
   width 180px
@@ -360,8 +464,9 @@ button:hover
   margin-left 0.5rem
   // margin-top 15px
 
-// .bulbBtn
-//   background blue
+.bulbBtn
+  opacity 0.3
 
+// need to refer to main.styl to change chart css!
 
 </style>

@@ -100,19 +100,34 @@ pre
 
 .flash
   animation flash linear 2s infinite
+  // stroke-dasharray ('2,2')
 
 .throb
   animation throb linear 2s infinite
 
+.throbPath
+  animation throbPath linear 2s infinite
+
 @keyframes flash
   0% { opacity: 1 } 
-  50% { opacity: .5 } 
+  50% { opacity: .15 } 
   100% { opacity: 1 }
 
 @keyframes throb
   0% { border-color: green } 
   50% { border-color: blue } 
   100% { border-color: green }
+
+@keyframes throbPath
+  0% { stroke: green } 
+  50% { stroke: blue } 
+  100% { stroke: green }
+
+
+.normal 
+  stroke-width 5px
+
+
 
 fieldset
   border-radius 0.5rem
