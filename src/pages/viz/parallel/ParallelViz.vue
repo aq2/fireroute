@@ -9,6 +9,8 @@
       .cand(v-for='(name,i) in candNames')
         button(:ID="'cand' + i" class='nameBtn'
                 @click='eyeClicked(i)'
+                @mouseover='flashPath(i, true)'
+                @mouseout='flashPath(i, false)'
               ) {{name}}
           icon(name='eye' class='eye' scale=1.3)
          
@@ -41,7 +43,11 @@ data() {
   return {
     dimNames: [], candNames: [], candColors: [],
     unfaded: [], lit: [],
-    nCands: 0, nLit: 0, nFaded: 0
+    nCands: 0, nLit: 0, nFaded: 0,
+    windowW: window.innerWidth, windowH: window.innerHeight,
+    svgHeight: 0, svgWidth: 0, margin: 60, // 2*30
+    chartHeight: 0, chartWidth: 0,
+    svg:{}, chartGrp: {}
   }
 },
 
@@ -60,8 +66,196 @@ computed: {
 methods: {
   main() {
     this.initData()
+    this.setChartSize()
     this.drawParallel()
+    this.setChartEvents()
   },
+
+  initData() {
+    this.nCands = this.selectedCands.length
+    for (var i=0, l=this.nCands; i<l; i++) {
+      this.unfaded.push(true)
+      this.lit.push(false)
+    }
+  },
+
+  setChartSize() {
+    // set size of svg 
+    this.svgHeight = Math.round((this.windowH - 100) * 0.95)
+    this.svgWidth = Math.round(this.windowW * 0.68)
+    this.chartHeight = this.svgHeight - this.margin
+    this.chartWidth = this.svgWidth - this.margin
+
+    // the whole svg
+    this.svg = d3.select('#mySvg')
+                  .attr('height', this.svgHeight)
+                  .attr('width', this.svgWidth)
+
+    // drawable area of chart, inside the margin
+    this.chartGrp = this.svg.append('g')
+                        .attr('class', 'chart')
+                        .attr('transform', this.myXY(this.margin/2, this.margin/2))
+  },
+
+
+   // todo - could split into sep fns
+  drawParallel() {
+    // setup a yAxis for each dimension 
+    let dims = [], dimScores = []
+    let mins = [], maxs = []
+    let yScales = [], yAxes = []
+    let dimColors = []
+
+    // fetch store data and set scales and axes for each dim
+    Object.entries(this.dimData).forEach(([k, dimD]) => {
+      if (dimD.crit) {
+        this.dimNames.push(dimD.dimName)
+        dimScores.push(dimD.scores)
+
+        const min = dimD.stats.min
+        const max = dimD.stats.max
+        mins.push(min)
+        maxs.push(max)
+
+        const yScale = d3.scaleLinear()
+                          .domain([min, max])
+                          .range([this.chartHeight, 0])
+        
+        yScales.push(yScale)
+        
+        const yAxis = d3.axisLeft(yScale)
+        yAxes.push(yAxis)
+        dimColors.push(this.randomColor())
+      }
+    })
+
+    // setup shared x scale and axis
+    const xScale = d3.scalePoint()
+                      .domain(this.dimNames)
+                      .range([0, this.chartWidth])
+
+    const xAxis = d3.axisBottom(xScale)
+                    .tickPadding(5)
+    
+    // put axes in a group, and shift a bit to make margin
+    const axesGrp = this.chartGrp.append('g')
+                        .attr('class', 'axes')
+
+    axesGrp.append('g')
+            .attr('id', 'xAxis')
+            .call(xAxis)
+            .attr('transform', this.myXY(0, this.chartHeight))
+
+    const yAxesGrp = axesGrp.append('g')
+                    .attr('class', 'yAxes')
+
+    // add a new group for circles
+    const circlesGrp = this.chartGrp.append('g')
+                              .attr('class', 'circles')
+
+    // for each dim, add axis and plot circles
+    this.dimNames.forEach((dim, j) => {
+      // add an axis
+      yAxesGrp.append('g')
+              .attr('class', 'yAxis' + j)
+              .call(yAxes[j])
+              .attr('transform', this.myXY(this.chartWidth * j / (this.dimNames.length - 1), 0))
+
+      // plot points on axis for dimension scores
+      circlesGrp.selectAll('circle.' + dim)                        
+        .data(dimScores[j])                                    
+        .enter()
+          // .each((d, i) =>  console.log('d' + i +' is', d))
+          .append('circle')
+          .attr('class', () => dim)                      
+          .attr('cx', () => this.chartWidth*j/(this.dimNames.length - 1))
+          .attr('cy', (d) => yScales[j](d))
+          .attr('r', '4')
+          .attr('fill', dimColors[j])
+    })
+
+    //
+    // need to build up candScores from dimScores
+    let candScores = [] //, candNames = []
+    let candXs = [], candYs = []   // not actually using candXs, but could...
+    let selectedCands = this.selectedCands
+
+    // get the candIDs for naming
+    selectedCands.forEach((c) => {
+      this.candNames.push(this.candiData[c].candID)
+      candScores.push([])
+      this.candColors.push(this.randomColor())
+    })
+    
+    // build candidate scores from dimScores
+    dimScores.forEach((dimScore, dS) => {
+      dimScore.forEach((score, n) => {
+        candScores[n].push(score)
+      })
+      // var candX = chartWidth*dS/(dims.length - 1)
+      // candXs.push(candX) 
+    })
+
+    // calculate x,y values for candScores
+    candScores.forEach(scores => {
+      let yVals = []
+      scores.forEach((score, s) => {
+        var valY = yScales[s](score)
+        yVals.push(valY)
+      })
+      candYs.push(yVals)
+    })
+
+    // ok, what about the lines?
+    // path generator to build line
+    const line = d3.line()
+                    .x((d, i) => (this.chartWidth*i/(this.dimNames.length - 1)))
+                    .y(d => d)
+                    // .curve(d3.curveOrdinal)
+                    // .curve(d3.curveNatural)
+                    // .curve(d3.curveBasis)
+                    .curve(d3.curveMonotoneX)
+                    // .curve(d3.curveCatmullRom)
+
+    const pathsGrp = this.chartGrp.append('g')
+                              .attr('class', 'paths')
+
+    // append paths for each candidate
+    selectedCands.forEach((cand, c) => {
+      pathsGrp.append('path')
+              .attr('d', line(candYs[c]))
+              .attr('class', 'path')
+              .attr('id', 'path' + c)
+              .attr('fill', 'none')
+              .attr('stroke', this.candColors[c])
+              .attr('stroke-width', '4px')
+    }) 
+  }, 
+
+  setChartEvents() {
+    d3.selectAll('path')
+      .on('mouseover', () => {
+        const pathID = d3.event.srcElement.id
+        var p = pathID.slice(4)
+        this.flashEye(p, true)
+        this.flashPath(p, true)
+      })
+      .on('mouseout', () => {
+        const pathID = d3.event.srcElement.id
+        var p = pathID.slice(4)
+        this.flashEye(p, false)
+        this.flashPath(p, false)
+      })
+      .on('click', () => {
+        const pathID = d3.event.srcElement.id
+        var p = pathID.slice(4)
+        this.bulbClicked(p)
+        // this.flashPath(p, false)
+      })
+
+  },
+
+
 
   eyeClicked(i) {
     if (this.unfaded[i]) {
@@ -124,15 +318,7 @@ methods: {
       }
     }
   },
-
-  initData() {
-    this.selectedCands.forEach(sC => {
-      this.nCands++
-      this.unfaded.push(true)
-      this.lit.push(false)
-    })
-  },
-
+  
   fadeEye(i) {
     this.changeButton(i, 0.5, true)  // dotted=true
   },
@@ -177,17 +363,27 @@ methods: {
   },
 
   lightPath(i) {
-    var cls = '.path' + i
-    d3.select(cls)
+    var id = '#path' + i
+    d3.select(id)
       .style('stroke-width', '4')    
       .style('stroke-dasharray', ('0, 0'))
   },
 
   fadePath(i) {
-    var cls = '.path' + i
-    d3.select(cls)
+    var id = '#path' + i
+    d3.select(id)
       .style('stroke-width', '2')
       .style('stroke-dasharray', ('5, 5'))
+  },
+
+  flashPath(i, yesNo) {
+    var id = '#path' + i
+    d3.select(id).classed('flash', yesNo)
+  },
+
+   flashEye(i, yesNo) {
+    var id = '#cand' + i
+    d3.select(id).classed('flash', yesNo)
   },
 
   changeButton(i, opac, dotted) {
@@ -208,204 +404,21 @@ methods: {
     this.$('bulb'+i).style.opacity = '0.33'    
   },
 
-
-  // todo - could split into sep fns
-  drawParallel() {
-    const windowW = window.innerWidth
-    const windowH = window.innerHeight
-
-    // set size of svg 
-    const svgHeight = (windowH-100)*0.95, svgWidth = windowW*0.68
-    const margin = 60  // ie 2*30
-    const chartHeight = svgHeight - margin, chartWidth = svgWidth - margin
-    
-    const svg = d3.select('#mySvg')
-                  .attr('height', svgHeight)
-                  .attr('width', svgWidth)
-
-    // drawable area of chart, inside the margin
-    const chartGrp = svg.append('g')
-                        .attr('class', 'chart')
-                        .attr('transform', this.myXY(margin/2, margin/2))
-    
-    // setup a yAxis for each dimension 
-    let dims = [], dimScores = []
-    let mins = [], maxs = []
-    let yScales = [], yAxes = []
-    let dimColors = []
-
-    // fetch store data and set scales and axes for each dim
-    Object.entries(this.dimData).forEach(([k, dimD]) => {
-      if (dimD.crit) {
-        this.dimNames.push(dimD.dimName)
-        dimScores.push(dimD.scores)
-
-        const min = dimD.stats.min
-        const max = dimD.stats.max
-        mins.push(min)
-        maxs.push(max)
-
-        const yScale = d3.scaleLinear()
-                          .domain([min, max])
-                          .range([chartHeight, 0])
-        
-        yScales.push(yScale)
-        
-        const yAxis = d3.axisLeft(yScale)
-        yAxes.push(yAxis)
-        dimColors.push(this.randomColor()())
-      }
-    })
-
-    // setup shared x scale and axis
-    const xScale = d3.scalePoint()
-                      .domain(this.dimNames)
-                      .range([0, chartWidth])
-
-    const xAxis = d3.axisBottom(xScale)
-                    .tickPadding(5)
-    
-    // put axes in a group, and shift a bit to make margin
-    const axesGrp = chartGrp.append('g')
-                            .attr('class', 'axes')
-
-    axesGrp.append('g')
-            .attr('class', 'xAxis')
-            .call(xAxis)
-            .attr('transform', this.myXY(0, chartHeight))
-
-    const yAxesGrp = axesGrp.append('g')
-                    .attr('class', 'yAxes')
-
-    // add a new group for circles
-    const circlesGrp = chartGrp.append('g')
-                              .attr('class', 'circles')
-
-    // for each dim, add axis and plot circles
-    this.dimNames.forEach((dim, j) => {
-      // add an axis
-      yAxesGrp.append('g')
-              .attr('class', 'yAxis' + j)
-              .call(yAxes[j])
-              .attr('transform', this.myXY(chartWidth * j / (this.dimNames.length - 1), 0))
-
-      // plot points on axis for dimension scores
-      circlesGrp.selectAll('circle.' + dim)                        
-        .data(dimScores[j])                                    
-        .enter()
-          // .each((d, i) =>  console.log('d' + i +' is', d))
-          .append('circle')
-          .attr('class', () => dim)                      
-          .attr('cx', () => chartWidth*j/(this.dimNames.length - 1))
-          .attr('cy', (d) => yScales[j](d))
-          .attr('r', '4')
-          .attr('fill', dimColors[j])
-    })
-
-    //
-    // need to build up candScores from dimScores
-    let candScores = [] //, candNames = []
-    let candXs = [], candYs = []   // not actually using candXs, but could...
-    let selectedCands = this.selectedCands
-
-    // get the candIDs for naming
-    selectedCands.forEach((c) => {
-      this.candNames.push(this.candiData[c].candID)
-      candScores.push([])
-      this.candColors.push(this.randomColor()())
-    })
-    
-    // build candidate scores from dimScores
-    dimScores.forEach((dimScore, dS) => {
-      dimScore.forEach((score, n) => {
-        candScores[n].push(score)
-      })
-      // var candX = chartWidth*dS/(dims.length - 1)
-      // candXs.push(candX) 
-    })
-
-    // calculate x,y values for candScores
-    candScores.forEach(scores => {
-      let yVals = []
-      scores.forEach((score, s) => {
-        var valY = yScales[s](score)
-        yVals.push(valY)
-      })
-      candYs.push(yVals)
-    })
-
-    // ok, what about the lines?
-    // path generator to build line
-    const line = d3.line()
-                    .x((d, i) => (chartWidth*i/(this.dimNames.length - 1)))
-                    .y(d => d)
-                    // .curve(d3.curveOrdinal)
-                    // .curve(d3.curveNatural)
-                    // .curve(d3.curveBasis)
-                    .curve(d3.curveMonotoneX)
-                    // .curve(d3.curveCatmullRom)
-
-    const pathsGrp = chartGrp.append('g')
-                              .attr('class', 'paths')
-
-    // append paths for each candidate
-    selectedCands.forEach((cand, c) => {
-      pathsGrp.append('path')
-              .attr('d', line(candYs[c]))
-              .attr('class', 'path' + c)
-              .classed('normal', true)
-              .attr('fill', 'none')
-              .attr('stroke', this.candColors[c])
-    }) 
-  }, 
-
   myXY(x, y) {
     return 'translate(' + x + ',' + y + ')'
   },
 
-  // Adapted from martin.ankerl.com
   randomColor() {
-    var h = Math.random()
-
-    function hue2rgb(p, q, t) {
-      if (t < 0) t++
-      if (t > 1) t--
-      if (t < 1/6) return p + (q - p) * 6 * t
-      if (t < 1/2) return q
-      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6
-      return p
-    }
-
-    var hslToRgb = function (h, s, l) {
-      var r, g, b
-
-      if (s == 0) {
-        r = g = b = l // achromatic
-      } else {
-        var q = l < 0.5 ? l * (1 + s) : l + s - l * s
-        var p = 2 * l - q
-        r = hue2rgb(p, q, h + 1/3)
-        g = hue2rgb(p, q, h)
-        b = hue2rgb(p, q, h - 1/3)
-      }
-
-      function mR(x) {
-        return Math.round(x)
-      }
-
-      return '#'+mR(r*255).toString(16)+mR(g*255).toString(16)+mR(b*255).toString(16)
-    }
-    
-    return function(){
-      h += 0.618033988749895
-      h %= 1
-
-      var myS = d3.randomUniform(0.2, 1)()
-      var myL = d3.randomUniform(0.3, 1)()
-
-      // return hslToRgb(h, 0.5, 0.60)
-      return hslToRgb(h, myS, myL)
-    }
+    // todo may be better to evenly distribute (with minor randomness),
+    // then shuffle the colors throughout pallete,
+    // so this function will either return whole pallete
+    // or random unchosen one
+    var h = d3.randomUniform()() * 360
+    var myS = d3.randomUniform(0.2, 1)() * 100
+    var myL = d3.randomUniform(0.3, 1)() * 100
+    // console.log('hsv', Math.round(h), Math.round(myS), Math.round(myL))
+    return 'hsl(' + h + ', ' + myS +'%, ' + myL + '%)'
+    // }
   },
 
   colorCandButtons() {
