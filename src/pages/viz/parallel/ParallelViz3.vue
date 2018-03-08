@@ -21,7 +21,7 @@
           icon(name='lightbulb-o' class='bulb' scale=1.3)
       button(@click='fadeAll') fade all 
       button(@click='resetAll') reset all 
-      //- button(@click='main') new palette
+      //- button(@click='randomPalette()') new palette 
 
 </template>
 
@@ -44,18 +44,19 @@ updated() {
 data() {
   return {
     svgHeightRatio: 0.95, svgWidthRatio: 0.8,  // fractions of window 
-    margin: 60, // 2*30
-    windowW: window.innerWidth, windowH: window.innerHeight,
-    dimNames: [],   // could be computed from superdata
-    candNames: [],  // could be computed from superdata
-    unfaded: [], lit: [],   // todo get rid of these and change fade(i)
+    windowW: window.innerWidth, 
+    windowH: window.innerHeight,
+    dimNames: [], candNames: [], candColors: [],
+    unfaded: [], lit: [],
     nCands: 0, nLit: 0, nFaded: 0, nDims: 0,
     svgHeight: 0, svgWidth: 0, 
+    margin: 60, // 2*30
     chartHeight: 0, chartWidth: 0,
     svg:{}, chartGrp: {},
     yAxes: [], yScales: [],
+    ys: [],
     dimsAll: [], candsAll: [], pathsAll: [],
-    superData: {dimsAll: [], candsAll: [], pathsAll: [] },  // computed?
+    superData: {dimsAll: [], candsAll: [], pathsAll: [] },
   }
 },
 
@@ -125,37 +126,43 @@ methods: {
         this.yAxes.push(yAxis)
         this.yScales.push(yScale)
 
-        // const candYs = []
+        const candYs = []
+
         const dimColor = this.randomColor()
 
-        const dimObj = {key, dimName, scores, min, max, yScale, yAxis, dimColor, xValue}
+        const dimObj = {key, dimName, scores, min, max, yScale, yAxis, dimColor, xValue, candYs}
 
         this.dimsAll.push(dimObj)
         this.dimNames.push(dimName)
         key++
       }
     })
-    // console.log(this.dimsAll)
+    // this.dimsAll.push(1)
+    // this.dimsAll.push(this.dimNames)
+    console.log(this.dimsAll)
     this.superData.dimsAll = this.dimsAll
     this.superData.dimNames = this.dimNames
   },
 
   initCandsAll() {
     this.nCands = this.$SelectedCands.length
-
-    // todo - sort out unfaded/lit with candObj
     for (var i=0, l=this.nCands; i<l; i++) {
       this.unfaded.push(true)
       this.lit.push(false)
+      var y = []
+      for (var j=0, m=this.nDims; j<m; j++) {
+        y.push([]) 
+      }      
+      this.ys.push(y)
     }
 
+    // var key = 0
     Object.values(this.$SelectedCands).forEach((cand, i) => {
       const key = i
       const name = this.$CandiData[cand].candID
       const candScores = []
       // loop over scores to get ys - where to get scores from?
       const yVals = []
-      const xVals = []
       Object.values(this.superData.dimsAll).forEach((dimObj, dS) => {
         dimObj.scores.forEach((score, n) => {
           if (i == n) {
@@ -164,17 +171,20 @@ methods: {
             yVals.push(valY)
           }
         })
-        var candX = this.chartWidth * dS / (this.nDims - 1)
-        xVals.push(candX) 
+      // var candX = chartWidth*dS/(dims.length - 1)
+      // candXs.push(candX) 
       })
+      const xVals = []
       const lit = true
       const hidden = false
-      const colour = ''
 
-      const candObj = {key, name, candScores, yVals, xVals, colour, lit, hidden}
+      const candObj = {key, name, candScores, yVals, xVals, lit, hidden}
       this.candsAll.push(candObj)
     })
     this.superData.candsAll = this.candsAll
+    // console.log('cA', this.candsAll)
+
+
   },
 
   setupChart() {
@@ -221,6 +231,7 @@ methods: {
       // plot points on axis for dimension scores
       var dimCircles = this.circlesGrp.append('g')
                         .attr('class', 'circle' + dimN)
+      // var foo = 0
       dimCircles.selectAll('circle.' + dimO.dimName)                        
         .data(dimO.scores)                           
         .enter()
@@ -228,7 +239,12 @@ methods: {
           .attr('class', () => dimO.dimName)                
           .attr('id', (d, cand) => dimO.dimName + cand)                
           .attr('cx', () => this.chartWidth*dimN/(this.dimNames.length - 1.0))
-          .attr('cy', (d) =>  dimO.yScale(d))
+          .attr('cy', (d, cand) => {
+                              // this also happens to yVal of sometinh i and j
+                                var y = dimO.yScale(d)
+                                this.ys[cand][dimN]  = y //qq
+                                return y
+                              })
           .attr('r', '5')
           .attr('fill', dimO.dimColor)
     })
@@ -253,18 +269,20 @@ methods: {
     const line = d3.line()
                     .x((d, i) => (this.chartWidth*i/(this.nDims - 1)))
                     .y(d => d)
+                    // .curve(d3.curveOrdinal)
+                    // .curve(d3.curveNatural)
+                    // .curve(d3.curveBasis)
                     .curve(d3.curveMonotoneX)
+                    // .curve(d3.curveCatmullRom)
 
-    // append paths for each candidate - todo use enter() etc?
-    this.superData.candsAll.forEach((candO, c) => {
-      var ys = candO.yVals
+    // append paths for each candidate
+    selectedCands.forEach((cand, c) => {  // want to use candsAll
       this.pathsGrp.append('path')
-              .attr('d', line(ys))  // yVals - for some reason wanna feed this this superdata
+              .attr('d', line(this.superData.candsAll[c].yVals))  // yVals
               .attr('class', 'path')
               .attr('id', 'path' + c)
               .attr('fill', 'none')
-              .attr('stroke', candO.colour)  // todo eh?
-              // .attr('stroke', this.candColors[c])  // todo eh?
+              .attr('stroke', this.candColors[c])
               .attr('stroke-width', '4px')
     }) 
   }, 
@@ -291,6 +309,8 @@ methods: {
       })
 
   },
+
+
 
   eyeClicked(i) {
     if (this.unfaded[i]) {
@@ -418,7 +438,7 @@ methods: {
     d3.select(id).classed('flash', yesNo)
   },
 
-  flashEye(i, yesNo) {
+   flashEye(i, yesNo) {
     var id = '#cand' + i
     d3.select(id).classed('flash', yesNo)
   },
@@ -478,17 +498,18 @@ methods: {
     d3.shuffle(h)
     
     h.forEach((hue, i) => {
-      // this.candColors.push('hsl(' + h[i] + ', ' + s[i] +'%, ' + l[i] + '%)')
-      this.superData.candsAll[i].colour = 'hsl(' + h[i] + ', ' + s[i] +'%, ' + l[i] + '%)'
+      this.candColors.push('hsl(' + h[i] + ', ' + s[i] +'%, ' + l[i] + '%)')
     })
+
   },
 
+
   colorCandButtons() {
-    this.superData.candsAll.forEach((cand, c) => {
+    this.$SelectedCands.forEach((cand, c) => {
       let candBtn = this.$('cand' + c)
       let bulbBtn = this.$('bulb' + c)
-      candBtn.style.background = cand.colour
-      bulbBtn.style.background = cand.colour
+      candBtn.style.background = this.candColors[c]
+      bulbBtn.style.background = this.candColors[c]
     })
   },
 

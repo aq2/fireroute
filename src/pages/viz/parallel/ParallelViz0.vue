@@ -3,6 +3,12 @@
 #payge  
   #gfx
     svg(id='mySvg')
+      g(class='chart2')
+        g(class='axes2')
+        g(class='circles2')
+        g(class='paths2')
+        
+        
   #list
     h1 candidates
     #candList 
@@ -21,7 +27,7 @@
           icon(name='lightbulb-o' class='bulb' scale=1.3)
       button(@click='fadeAll') fade all 
       button(@click='resetAll') reset all 
-      //- button(@click='main') new palette
+      //- button(@click='randomPalette()') new palette 
 
 </template>
 
@@ -43,228 +49,194 @@ updated() {
 
 data() {
   return {
-    svgHeightRatio: 0.95, svgWidthRatio: 0.8,  // fractions of window 
-    margin: 60, // 2*30
+    dimNames: [], candNames: [], candColors: [],
+    unfaded: [], lit: [],
+    nCands: 0, nLit: 0, nFaded: 0,
     windowW: window.innerWidth, windowH: window.innerHeight,
-    dimNames: [],   // could be computed from superdata
-    candNames: [],  // could be computed from superdata
-    unfaded: [], lit: [],   // todo get rid of these and change fade(i)
-    nCands: 0, nLit: 0, nFaded: 0, nDims: 0,
-    svgHeight: 0, svgWidth: 0, 
+    svgHeight: 0, svgWidth: 0, margin: 60, // 2*30
     chartHeight: 0, chartWidth: 0,
-    svg:{}, chartGrp: {},
-    yAxes: [], yScales: [],
-    dimsAll: [], candsAll: [], pathsAll: [],
-    superData: {dimsAll: [], candsAll: [], pathsAll: [] },  // computed?
+    svg:{}, chartGrp: {}
   }
 },
 
 computed: {
-  $DimData() {
+  dimData() {
     return this.$store.getters.getDimData
   },
-  $DimMeta() {
-    return this.$store.getters.getDimMeta
-  },
-  $SelectedCands() {
+  selectedCands() {
     return this.$store.getters.getSelectedCands
   },
-  $CandiData() {
+  candiData() {
     return this.$store.getters.getCandiData
-  },
+  },  
 },
 
 methods: {
   main() {
-    this.initChart()
-    this.initDimsAll()
-    this.initCandsAll()
-    this.setupChart()
+    this.initData()
+    this.setChartSize()
     this.randomPalette(this.nCands)
-    this.plotCircles()
-    this.plotPaths()
+    this.drawParallel()
     this.setChartEvents()
   },
 
-  initChart() {
+  initData() {
+    this.nCands = this.selectedCands.length
+    for (var i=0, l=this.nCands; i<l; i++) {
+      this.unfaded.push(true)
+      this.lit.push(false)
+    }
+  },
+
+  setChartSize() {
     // set size of svg 
-    this.svgHeight = Math.round((this.windowH - 100) * this.svgHeightRatio)  // 100 = headerHeight
-    this.svgWidth = Math.round(this.windowW * this.svgWidthRatio)
+    this.svgHeight = Math.round((this.windowH - 100) * 0.95)
+    this.svgWidth = Math.round(this.windowW * 0.68)
     this.chartHeight = this.svgHeight - this.margin
     this.chartWidth = this.svgWidth - this.margin
 
-     // the whole svg
+    // the whole svg
     this.svg = d3.select('#mySvg')
                   .attr('height', this.svgHeight)
                   .attr('width', this.svgWidth)
-    
+
     // drawable area of chart, inside the margin
-    this.chartGrp = this.svg
-                        .append('g')
-                          .attr('class', 'chart')
-                          .attr('transform', this.myXY(this.margin/2, this.margin/2))
+    this.chartGrp = this.svg.append('g')
+                        .attr('class', 'chart')
+                        .attr('transform', this.myXY(this.margin/2, this.margin/2))
   },
 
-  initDimsAll() {
-    this.nDims = this.$DimMeta.crits.length
+  // todo - could split into sep fns
+  drawParallel() {
+    // setup a yAxis for each dimension 
+    let dims = [], dimScores = []
+    let mins = [], maxs = []
+    let yScales = [], yAxes = []
+    let dimColors = []
 
-    var key = 0
-    Object.values(this.$DimData).forEach((dimD) => {  
+    // fetch store data and set scales and axes for each dim
+    Object.entries(this.dimData).forEach(([k, dimD]) => {
       if (dimD.crit) {
-        const {dimName, scores} = dimD
-        const {min, max} = dimD.stats
+        this.dimNames.push(dimD.dimName)
+        dimScores.push(dimD.scores)
 
-        const xValue = this.chartWidth * key / (this.nDims - 1)
+        const min = dimD.stats.min
+        const max = dimD.stats.max
+        mins.push(min)
+        maxs.push(max)
 
         const yScale = d3.scaleLinear()
                           .domain([min, max])
                           .range([this.chartHeight, 0])
         
+        yScales.push(yScale)
+        
         const yAxis = d3.axisLeft(yScale)
-
-        this.yAxes.push(yAxis)
-        this.yScales.push(yScale)
-
-        // const candYs = []
-        const dimColor = this.randomColor()
-
-        const dimObj = {key, dimName, scores, min, max, yScale, yAxis, dimColor, xValue}
-
-        this.dimsAll.push(dimObj)
-        this.dimNames.push(dimName)
-        key++
+        yAxes.push(yAxis)
+        dimColors.push(this.randomColor())
       }
     })
-    // console.log(this.dimsAll)
-    this.superData.dimsAll = this.dimsAll
-    this.superData.dimNames = this.dimNames
-  },
 
-  initCandsAll() {
-    this.nCands = this.$SelectedCands.length
-
-    // todo - sort out unfaded/lit with candObj
-    for (var i=0, l=this.nCands; i<l; i++) {
-      this.unfaded.push(true)
-      this.lit.push(false)
-    }
-
-    Object.values(this.$SelectedCands).forEach((cand, i) => {
-      const key = i
-      const name = this.$CandiData[cand].candID
-      const candScores = []
-      // loop over scores to get ys - where to get scores from?
-      const yVals = []
-      const xVals = []
-      Object.values(this.superData.dimsAll).forEach((dimObj, dS) => {
-        dimObj.scores.forEach((score, n) => {
-          if (i == n) {
-            candScores.push(score)
-            var valY = dimObj.yScale(score)
-            yVals.push(valY)
-          }
-        })
-        var candX = this.chartWidth * dS / (this.nDims - 1)
-        xVals.push(candX) 
-      })
-      const lit = true
-      const hidden = false
-      const colour = ''
-
-      const candObj = {key, name, candScores, yVals, xVals, colour, lit, hidden}
-      this.candsAll.push(candObj)
-    })
-    this.superData.candsAll = this.candsAll
-  },
-
-  setupChart() {
-    // setup axes
-    this.axesGrp = this.chartGrp.append('g')
-                        .attr('class', 'axes')
- 
     // setup shared x scale and axis
-    this.xScale = d3.scalePoint()
+    const xScale = d3.scalePoint()
                       .domain(this.dimNames)
                       .range([0, this.chartWidth])
 
-    this.xAxis = d3.axisBottom(this.xScale)
+    const xAxis = d3.axisBottom(xScale)
                     .tickPadding(5)
- 
-    this.axesGrp.append('g')
+    
+    // put axes in a group, and insert into chartGrp
+    const axesGrp = this.chartGrp.append('g')
+                        .attr('class', 'axes')
+
+    axesGrp.append('g')
             .attr('id', 'xAxis')
-            .call(this.xAxis)
+            .call(xAxis)
+            // move to bottom
             .attr('transform', this.myXY(0, this.chartHeight))
 
-    this.yAxesGrp = this.axesGrp.append('g')
+    const yAxesGrp = axesGrp.append('g')
                     .attr('class', 'yAxes')
 
-    // todo - enter()?   // use superData instead??
-    Object.values(this.superData.dimsAll).forEach((dimObj) => {
-       this.yAxesGrp.append('g')
-              .attr('class', 'yAxis' + dimObj.key)
-              .call(dimObj.yAxis)
-              .attr('transform', this.myXY(this.chartWidth * dimObj.key / (this.nDims - 1), 0))
-    })
-
     // add a new group for circles
-    this.circlesGrp = this.chartGrp.append('g')
+    const circlesGrp = this.chartGrp.append('g')
                               .attr('class', 'circles')
 
-    // and then the paths
-    this.pathsGrp = this.chartGrp.append('g')
-                              .attr('class', 'paths')
-  },
+    // for each dim, add axis and plot circles
+    this.dimNames.forEach((dim, j) => {
+      // add an axis
+      yAxesGrp.append('g')
+              .attr('class', 'yAxis' + j)
+              .call(yAxes[j])
+              .attr('transform', this.myXY(this.chartWidth * j / (this.dimNames.length - 1), 0))
 
-  plotCircles() {
-    // for each dim, plot circles
-    Object.values(this.superData.dimsAll).forEach((dimO, dimN) => {
       // plot points on axis for dimension scores
-      var dimCircles = this.circlesGrp.append('g')
-                        .attr('class', 'circle' + dimN)
-      dimCircles.selectAll('circle.' + dimO.dimName)                        
-        .data(dimO.scores)                           
+      circlesGrp.selectAll('circle.' + dim)                        
+        .data(dimScores[j])                                    
         .enter()
+          // .each((d, i) =>  console.log('d' + i +' is', d))
           .append('circle')
-          .attr('class', () => dimO.dimName)                
-          .attr('id', (d, cand) => dimO.dimName + cand)                
-          .attr('cx', () => this.chartWidth*dimN/(this.dimNames.length - 1.0))
-          .attr('cy', (d) =>  dimO.yScale(d))
-          .attr('r', '5')
-          .attr('fill', dimO.dimColor)
+          .attr('class', () => dim)                      
+          .attr('cx', () => this.chartWidth*j/(this.dimNames.length - 1))
+          .attr('cy', (d) => yScales[j](d))
+          .attr('r', '4')
+          .attr('fill', dimColors[j])
     })
-  },
-
-  plotPaths() {
 
     //
     // need to build up candScores from dimScores
     let candScores = [] //, candNames = []
-    let selectedCands = this.$SelectedCands
+    let candXs = [], candYs = []   // not actually using candXs, but could...
+    let selectedCands = this.selectedCands
 
     // get the candIDs for naming
     selectedCands.forEach((c) => {
-      this.candNames.push(this.$CandiData[c].candID)
+      this.candNames.push(this.candiData[c].candID)
       candScores.push([])
       // this.candColors.push(this.randomColor())     // qq
     })
     
+    // build candidate scores from dimScores
+    dimScores.forEach((dimScore, dS) => {
+      dimScore.forEach((score, n) => {
+        candScores[n].push(score)
+      })
+      // var candX = chartWidth*dS/(dims.length - 1)
+      // candXs.push(candX) 
+    })
+
+    // calculate x,y values for candScores
+    candScores.forEach(scores => {
+      let yVals = []
+      scores.forEach((score, s) => {
+        var valY = yScales[s](score)
+        yVals.push(valY)
+      })
+      candYs.push(yVals)
+    })
+
     // ok, what about the lines?
     // path generator to build line
     const line = d3.line()
-                    .x((d, i) => (this.chartWidth*i/(this.nDims - 1)))
+                    .x((d, i) => (this.chartWidth*i/(this.dimNames.length - 1)))
                     .y(d => d)
+                    // .curve(d3.curveOrdinal)
+                    // .curve(d3.curveNatural)
+                    // .curve(d3.curveBasis)
                     .curve(d3.curveMonotoneX)
+                    // .curve(d3.curveCatmullRom)
 
-    // append paths for each candidate - todo use enter() etc?
-    this.superData.candsAll.forEach((candO, c) => {
-      var ys = candO.yVals
-      this.pathsGrp.append('path')
-              .attr('d', line(ys))  // yVals - for some reason wanna feed this this superdata
+    const pathsGrp = this.chartGrp.append('g')
+                              .attr('class', 'paths')
+
+    // append paths for each candidate
+    selectedCands.forEach((cand, c) => {
+      pathsGrp.append('path')
+              .attr('d', line(candYs[c]))
               .attr('class', 'path')
               .attr('id', 'path' + c)
               .attr('fill', 'none')
-              .attr('stroke', candO.colour)  // todo eh?
-              // .attr('stroke', this.candColors[c])  // todo eh?
+              .attr('stroke', this.candColors[c])
               .attr('stroke-width', '4px')
     }) 
   }, 
@@ -291,6 +263,8 @@ methods: {
       })
 
   },
+
+
 
   eyeClicked(i) {
     if (this.unfaded[i]) {
@@ -418,7 +392,7 @@ methods: {
     d3.select(id).classed('flash', yesNo)
   },
 
-  flashEye(i, yesNo) {
+   flashEye(i, yesNo) {
     var id = '#cand' + i
     d3.select(id).classed('flash', yesNo)
   },
@@ -478,17 +452,18 @@ methods: {
     d3.shuffle(h)
     
     h.forEach((hue, i) => {
-      // this.candColors.push('hsl(' + h[i] + ', ' + s[i] +'%, ' + l[i] + '%)')
-      this.superData.candsAll[i].colour = 'hsl(' + h[i] + ', ' + s[i] +'%, ' + l[i] + '%)'
+      this.candColors.push('hsl(' + h[i] + ', ' + s[i] +'%, ' + l[i] + '%)')
     })
+
   },
 
+
   colorCandButtons() {
-    this.superData.candsAll.forEach((cand, c) => {
+    this.selectedCands.forEach((cand, c) => {
       let candBtn = this.$('cand' + c)
       let bulbBtn = this.$('bulb' + c)
-      candBtn.style.background = cand.colour
-      bulbBtn.style.background = cand.colour
+      candBtn.style.background = this.candColors[c]
+      bulbBtn.style.background = this.candColors[c]
     })
   },
 
