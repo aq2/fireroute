@@ -10,7 +10,8 @@ state: {
   dimData: {},
   candMeta: [],
   candiData: [],
-  selectedCands: []
+  selectedCands: [],
+  selectedCandsData: []
 },
 
 // components get stored data through these 
@@ -29,6 +30,9 @@ getters: {
   },
   getSelectedCands(state) {
     return state.selectedCands
+  },
+  getSelectedCandsData(state) {
+    return state.selectedCandsData
   }
 },
 
@@ -49,6 +53,9 @@ mutations: {
   },
   mutateSelectedCands(state, payload) {
     state.selectedCands = payload
+  },
+  mutateSelectedCandsData(state, payload) {
+    state.selectedCandsData = payload
   }
 },
 
@@ -69,6 +76,9 @@ actions: {
   },
   setSelectedCands(context, payload) {
     context.commit('mutateSelectedCands', payload)
+  },
+  setSelectedCandsData(context, payload) {
+    context.commit('mutateSelectedCandsData', payload)
   }
 }
 

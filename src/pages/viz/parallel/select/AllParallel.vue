@@ -5,7 +5,7 @@
     p You've chosen to view all the data candidates
     p There are {{candL}} of them in your dataset.
     p This may lead to a cluttered diagram.
-    button(@click='doViz()') I can handle {{candL}} lines
+    button(@click='selected') I can handle {{candL}} lines
     .h
     button(@click='goBack()') let's go back
 
@@ -22,7 +22,7 @@ computed: {
     //   return this.$store.getters.getCandiData
     // },
     candL() {
-      const cands = this.$store.getters.getCandiMeta.candidates
+      const cands = this.$store.getters.getCandMeta.candidates
       return cands.length
     },
     candiMeta() {
@@ -30,10 +30,11 @@ computed: {
     },
   },
   methods: {
-    doViz() {
+    selected() {
       // var palette = my.randomPalette(this.candL)
 
-      var selectedCands = Array.from(Array(this.candL).keys()) 
+      var selectedCands = Array.from(Array(this.candL).keys())
+      console.log(selectedCands)
       // makes [0,1,2,...n-1]
 
       // var selectedCands = []
