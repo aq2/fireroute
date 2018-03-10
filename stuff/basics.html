@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>d3 basics</title>
+  <script src='http://d3js.org/d3.v4.min.js'></script>
+</head>
+<body>
+  
+<script>
+
+
+var dataArray = [10, 20, 30]
+var dataArray2 = [
+  {a:20},
+  {a:10},
+  {a:30}
+]
+
+
+var canvas = d3.select('body')
+                .append('svg')
+                  .attr('width', 500)
+                  .attr('height', 500)
+
+var bars = canvas.selectAll('rect')
+                    .data(dataArray2)
+                      .enter()  // returns placeholders forEach dataItem with no dom els yet
+                        .append('rect')  // stick rect in in each placeholder
+                          .attr('width', (d) => d.a*20)  // make width 20*dataitem
+                          .attr('height', 50)
+                          .attr('y', (d, i) => i*100) // make each y 100px apart
+
+console.log(bars)
+
+</script>
+
+</body>
+</html>

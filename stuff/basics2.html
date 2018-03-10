@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>d3 basics</title>
+  <script src='http://d3js.org/d3.v4.min.js'></script>
+</head>
+<body>
+  <h1>doom!</h1>
+<script>
+
+
+var dataArray = [10, 20]
+var dataArray2 = [10]
+
+var canvas = d3.select('body')
+                .append('svg')
+                  .attr('width', 500)
+                  .attr('height', 500)
+
+var circle = canvas.append('circle')
+                        .attr('cx', 150)
+                        .attr('cy', 100)
+                        .attr('r', 35)
+
+var circle2 = canvas.append('circle')
+                        .attr('cx', 250)
+                        .attr('cy', 150)
+                        .attr('r', 15)
+
+
+// var circles = canvas.selectAll('circle')      // 1: empty selection, 2: contains all existing circles
+//                                               // 3: contains all existing circles = 1
+//                                               // 4: 2 existing - no new ones
+//                     .data(dataArray)          // 1: bind empty selection with data, 2:!empty, !bound
+//                                               // 3: one more dataitem than circles
+//                                               // 4: same number
+//                     .attr('fill', 'blue')     // apply to  update selection!
+//                                               // 3: existing first circle that are already bound
+//                                               // 4: existing 2 circles already bound
+//                     .enter()                  // 1: forEach data element with empty dom, 2: which is none
+//                                               // 3: 2 els, one dom => one empty dom 1st el ignored
+//                                               // 4: 2 els, 2 doms -> no emptys, 2 data ignored
+//                       .append('circle')  
+//                         .attr('cx', 50)
+//                         .attr('cy', 50)
+//                         .attr('r', 25)
+//                         .attr('fill', 'green')
+
+
+var newCircles = canvas.selectAll('circle')  
+                        .data(dataArray2)     // binding data to our selection, which is two circles
+                                              // but only one data element - only effects 1st circle
+                          .attr('fill', 'green')
+                          .exit()             // returns exit selection
+                                              // dom els with no data
+                            .attr('fill', 'orange')
+
+</script>
+
+</body>
+</html>

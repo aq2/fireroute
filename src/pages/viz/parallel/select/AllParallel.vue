@@ -13,20 +13,41 @@
 </template>
 
 <script>
+// import * as my from './../../../../builders/my'
+
 export default {
-  computed: {
-    candiData() {
-      return this.$store.getters.getCandiData
-    },
+
+computed: {
+    // candiData() {
+    //   return this.$store.getters.getCandiData
+    // },
     candL() {
-      return this.candiData.length
+      const cands = this.$store.getters.getCandiMeta.candidates
+      return cands.length
+    },
+    candiMeta() {
+      return this.$store.getters.getCandiMeta
     },
   },
   methods: {
     doViz() {
-      // store array of all candidate indices
-      var selection = Array.from(Array(this.candL).keys()) // makes [0,1,2,...n-1]
-      this.$store.dispatch('setSelectedCands', selection)
+      // var palette = my.randomPalette(this.candL)
+
+      var selectedCands = Array.from(Array(this.candL).keys()) 
+      // makes [0,1,2,...n-1]
+
+      // var selectedCands = []
+      // for (var selKey=0, l=this.candL; selKey<l; selKey++) {
+      //   var name = this.candiData[selKey].candID
+      //   var candKey = this.candiData[selKey].candKey
+      //   var colour = palette[selKey]
+      //   var lit = false
+      //   var faded = false
+      //   var candObj = {selKey, name, candKey, colour, lit, faded}
+      //   selectedCands.push(candObj)
+      // }
+
+      this.$store.dispatch('setSelectedCands', selectedCands)
       this.$router.push('/parViz')
     },
     goBack() {
