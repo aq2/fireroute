@@ -3,22 +3,9 @@
 #list
   h1 candidates
   #candList
-    //- todo need to make this div scrollable
-    .cand(v-for='(name,i) in candNames')
-      button(:ID="'cand' + i" class='nameBtn'
-              @click='eyeClicked(i)'
-              @mouseover='flashPath(i, true)'
-              @mouseout='flashPath(i, false)'
-            ) {{name}}
-        icon(name='eye' class='eye' scale=1.2)
-        
-      button(:ID="'bulb' + i" class='bulbBtn'
-              @click='bulbClicked(i)'             
-            )
-        icon(name='lightbulb-o' class='bulb' scale=1.3)
-    button(@click='fadeAll') fade all 
-    button(@click='resetAll') reset all 
-    //- button(@click='main') new palette
+  button(@click='fadeAll') fade all 
+  button(@click='resetAll') reset all 
+  //- button(@click='main') new palette
 
 
 </template>
@@ -33,10 +20,7 @@ import {EventBus} from '../../../main'
 
 export default {
 mounted() {
-  // this.colorCandButtons()
-  // var my = document.getElementById('cand0')
-  // alert('foo', my)
-  this.main()
+   this.main()
 },
 
 data() {
@@ -44,75 +28,59 @@ data() {
     nCands: 0, nLit: 0, nFaded: 0, nDims: 0, 
     candColors: [], candPalette: [],
     dimsAll: [], candsAll: [], pathsAll: [],
-    candNames: [], cands: []
     // superData: {dimsAll: [], candsAll: [], pathsAll: [] },  // computed?
+    cands: [], candNames: [], 
   }
 },
 
 computed: {
-  // $DimData() {
-  //   return this.$store.getters.getDimData
-  // },
-  // $DimMeta() {
-  //   return this.$store.getters.getDimMeta
-  // },
-  // $SelectedCands() {
-  //   return this.$store.getters.getSelectedCands
-  // },
-  // $CandiData() {
-  //   return this.$store.getters.getCandiData
-  // },
-  // candNames() {
-  //   return this.$SelectedCands.map(sC => sC.name)
-  // },
-  
   $SelectedData() {
     return this.$store.getters.getSelectedData    
   }
-
 },
 
 methods: {
   main() {
     this.setupCands()
-    this.setupCandsCols()
-    
-    // this.setChartEvents()
-  },
-
-  updated() {
-    // this.setupCandsCols()
-
   },
 
   setupCands() {
     this.cands = this.$SelectedData.cands
     this.candNames = this.cands.map(c => c.name)
+
+    // d3-ize it
+    d3.select('#candList')
+        .selectAll('button')
+        .data(this.cands)
+        .enter()
+          .append('div')
+            .attr('class', 'pathButtons')
+          .append('button')
+            .html(d => d.name )
+            .attr('id', (d, i) => 'cand' + i)
+            .style('background', d => d.colour)
+            .classed('buttonC', true) // ? has to be in main.styl
+            .on('mouseover', (d, i) => this.fadeEye(i))
+            .on('mouseout', (d, i) => this.lightEye(i))    
+            .on('click', (d, i) => this.eyeClicked(i))
+
+    // don't need data and enter, as we already have selectable nodes
+    d3.select('#candList')                      
+        .selectAll('div')
+          .append('button')
+            .html('S')
+            .attr('id', (d, i) => 'bulb' + i)
+            .style('background', d => d.colour)
+            .style('opacity', '0.4')
+
   },
-
-
-  // qq can't find elements at this stage! but it's mounted!
-  setupCandsCols() {
-   this.cands.forEach((c, i) => {
-     const elID = 'cand' + i
-     const el =  my.$(elID)
-     console.log('el', el, elID)
-     console.log(c.colour)
-     const myEl = document.getElementById('cand0')
-     console.log('myEl', myEl)
-     const dL = d3.select('#cand0')
-     console.log('dL', dL)
-    //  dL.style.background = c.colour
-     dL.style.background = 'red'
-     myEl.style.background = 'red'
-    //  my.$('elID').style.background = 'hsl(183, 71%, 57%)'
-      // my.$('bulb' + i).style.background = c.colour
-    })
-  },
-
-  
 
   eyeClicked(i) {
+    this.fadeEye(i)
+    // qq but lost in mouseout!
+  },
+
+  eyeClickedO(i) {
     if (this.unfaded[i]) {
       this.fadeEye(i)
       this.fadePath(i)
@@ -283,44 +251,6 @@ methods: {
     // }
   },
 
-  // // make palette of n colors 'evenly' thru hue wheel
-  // randomPalette(n) {
-  //   // var n = this.nCands
-  //   var slice = 360/n
-  //   var h = [], s = [], l = []
-  //   var palette = []
-
-  //   // numbers to tweak - should s = f(l) or vv? qq
-  //   const minS = 0.7, maxS = 1
-  //   const minL = 0.2, maxL = 0.7
-
-  //   for (var i=0; i<n; i++) {
-  //     // h.push(slice * i * d3.randomUniform(0.9, 1.1)())
-  //     h.push(slice * i * d3.randomUniform(0.9, 1.1)())
-  //     s.push(d3.randomUniform(minS, maxS)() * 100)
-  //     l.push(d3.randomUniform(minL, maxL)() * 100)
-  //   }
-  //   d3.shuffle(h)
-    
-  //   h.forEach((hue, i) => {
-  //     // this.candColors.push('hsl(' + h[i] + ', ' + s[i] +'%, ' + l[i] + '%)')
-  //     palette.push('hsl(' + h[i] + ', ' + s[i] +'%, ' + l[i] + '%)')
-  //   })
-  //   return palette
-  // },
-
-  // colorCandButtons() {
-  //   this.candsAll.forEach((cand, c) => {
-  //     let candBtn = my.$('cand' + c)
-  //     let bulbBtn = my.$('bulb' + c)
-  //     candBtn.style.background = this.candColors[c]
-  //     bulbBtn.style.background = this.candColors[c]
-  //   })
-  // },
-
-  // $(ID) {
-  //   return document.getElementById(ID)
-  // },
 
 } // end methods  
 
@@ -379,13 +309,7 @@ svg
   // position fixed
 
 
-button
-  color $g0
-  margin-bottom 0.5rem
-  border 3px solid transparent
-  box-sizing border-box
-  padding 0.5rem
-  margin-right 0.25rem
+
 
 .nameBtn
   width 160px
