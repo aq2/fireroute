@@ -11,16 +11,16 @@ export function randomPalette(n) {
   const minS = 0.7, maxS = 1
   const minL = 0.2, maxL = 0.7
 
+  const mR = Math.round
+
   for (var i=0; i<n; i++) {
-    // h.push(slice * i * d3.randomUniform(0.9, 1.1)())
-    h.push(slice * i * d3.randomUniform(0.9, 1.1)())
-    s.push(d3.randomUniform(minS, maxS)() * 100)
-    l.push(d3.randomUniform(minL, maxL)() * 100)
+    h.push(mR(slice * i * d3.randomUniform(0.9, 1.1)()))
+    s.push(mR(d3.randomUniform(minS, maxS)() * 100))
+    l.push(mR(d3.randomUniform(minL, maxL)() * 100))
   }
   d3.shuffle(h)
   
   h.forEach((hue, i) => {
-    // this.candColors.push('hsl(' + h[i] + ', ' + s[i] +'%, ' + l[i] + '%)')
     palette.push('hsl(' + h[i] + ', ' + s[i] +'%, ' + l[i] + '%)')
   })
   return palette

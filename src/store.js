@@ -10,8 +10,8 @@ state: {
   dimData: {},
   candMeta: [],
   candiData: [],
-  selectedCands: [],
-  selectedCandsData: []
+  // selectedCands: [],
+  selectedData: []
 },
 
 // components get stored data through these 
@@ -28,11 +28,11 @@ getters: {
   getCandMeta(state) {
     return state.candMeta
   },
-  getSelectedCands(state) {
-    return state.selectedCands
-  },
-  getSelectedCandsData(state) {
-    return state.selectedCandsData
+  // getSelectedCands(state) {
+  //   return state.selectedCands
+  // },
+  getSelectedData(state) {
+    return state.selectedData
   }
 },
 
@@ -51,11 +51,11 @@ mutations: {
   mutateDimMeta(state, payload) {
     state.dimMeta = payload
   },
-  mutateSelectedCands(state, payload) {
-    state.selectedCands = payload
-  },
-  mutateSelectedCandsData(state, payload) {
-    state.selectedCandsData = payload
+  // mutateSelectedCands(state, payload) {
+  //   state.selectedCands = payload
+  // },
+  mutateSelectedData(state, payload) {
+    state.selectedData = payload
   }
 },
 
@@ -74,11 +74,11 @@ actions: {
   setDimMeta(context, payload) {
     context.commit('mutateDimMeta', payload)
   },
-  setSelectedCands(context, payload) {
-    context.commit('mutateSelectedCands', payload)
-  },
-  setSelectedCandsData(context, payload) {
-    context.commit('mutateSelectedCandsData', payload)
+  // setSelectedCands(context, payload) {
+  //   context.commit('mutateSelectedCands', payload)
+  // },
+  setSelectedData(context, payload) {
+    context.commit('mutateSelectedData', payload)
   }
 }
 

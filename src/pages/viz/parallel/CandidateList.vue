@@ -1,24 +1,25 @@
 <template lang="pug">
   
-  #list
-    h1 candidates
-    #candList
-      //- todo need to make this div scrollable
-      .cand(v-for='(name,i) in candNames')
-        button(:ID="'cand' + i" class='nameBtn'
-                @click='eyeClicked(i)'
-                @mouseover='flashPath(i, true)'
-                @mouseout='flashPath(i, false)'
-              ) {{name}}
-          icon(name='eye' class='eye' scale=1.2)
-         
-        button(:ID="'bulb' + i" class='bulbBtn'
-                @click='bulbClicked(i)'             
-              )
-          icon(name='lightbulb-o' class='bulb' scale=1.3)
-      button(@click='fadeAll') fade all 
-      button(@click='resetAll') reset all 
-      //- button(@click='main') new palette
+#list
+  h1 candidates
+  #candList
+    //- todo need to make this div scrollable
+    .cand(v-for='(name,i) in candNames')
+      button(:ID="'cand' + i" class='nameBtn'
+              @click='eyeClicked(i)'
+              @mouseover='flashPath(i, true)'
+              @mouseout='flashPath(i, false)'
+            ) {{name}}
+        icon(name='eye' class='eye' scale=1.2)
+        
+      button(:ID="'bulb' + i" class='bulbBtn'
+              @click='bulbClicked(i)'             
+            )
+        icon(name='lightbulb-o' class='bulb' scale=1.3)
+    button(@click='fadeAll') fade all 
+    button(@click='resetAll') reset all 
+    //- button(@click='main') new palette
+
 
 </template>
 
@@ -33,47 +34,79 @@ import {EventBus} from '../../../main'
 export default {
 mounted() {
   // this.colorCandButtons()
+  // var my = document.getElementById('cand0')
+  // alert('foo', my)
   this.main()
 },
 
 data() {
   return {
-    unfaded: [], lit: [],   // todo get rid of these and change fade(i)
-    nCands: 0, nLit: 0, nFaded: 0, nDims: 0, candColors: [], candPalette: [],
+    nCands: 0, nLit: 0, nFaded: 0, nDims: 0, 
+    candColors: [], candPalette: [],
     dimsAll: [], candsAll: [], pathsAll: [],
+    candNames: [], cands: []
     // superData: {dimsAll: [], candsAll: [], pathsAll: [] },  // computed?
   }
 },
 
 computed: {
-  $DimData() {
-    return this.$store.getters.getDimData
-  },
-  $DimMeta() {
-    return this.$store.getters.getDimMeta
-  },
-  $SelectedCands() {
-    return this.$store.getters.getSelectedCands
-  },
-  $CandiData() {
-    return this.$store.getters.getCandiData
-  },
-  candNames() {
-    return this.$SelectedCands.map(sC => sC.name)
-  }
+  // $DimData() {
+  //   return this.$store.getters.getDimData
+  // },
+  // $DimMeta() {
+  //   return this.$store.getters.getDimMeta
+  // },
+  // $SelectedCands() {
+  //   return this.$store.getters.getSelectedCands
+  // },
+  // $CandiData() {
+  //   return this.$store.getters.getCandiData
+  // },
+  // candNames() {
+  //   return this.$SelectedCands.map(sC => sC.name)
+  // },
   
+  $SelectedData() {
+    return this.$store.getters.getSelectedData    
+  }
+
 },
 
 methods: {
   main() {
     this.setupCands()
+    this.setupCandsCols()
+    
     // this.setChartEvents()
   },
 
+  updated() {
+    // this.setupCandsCols()
+
+  },
+
   setupCands() {
-   this.$SelectedCands.forEach((c, i) => {
-      my.$('cand' + i).style.background = c.colour
-      my.$('bulb' + i).style.background = c.colour
+    this.cands = this.$SelectedData.cands
+    this.candNames = this.cands.map(c => c.name)
+  },
+
+
+  // qq can't find elements at this stage! but it's mounted!
+  setupCandsCols() {
+   this.cands.forEach((c, i) => {
+     const elID = 'cand' + i
+     const el =  my.$(elID)
+     console.log('el', el, elID)
+     console.log(c.colour)
+     const myEl = document.getElementById('cand0')
+     console.log('myEl', myEl)
+     const dL = d3.select('#cand0')
+     console.log('dL', dL)
+    //  dL.style.background = c.colour
+     dL.style.background = 'red'
+     myEl.style.background = 'red'
+    //  my.$('elID').style.background = 'hsl(183, 71%, 57%)'
+      // my.$('bulb' + i).style.background = c.colour
     })
   },
 

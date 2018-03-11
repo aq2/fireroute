@@ -1,8 +1,8 @@
 <template lang="pug">
   
 #payge
-  ParallelPlot(v-if='stuffCalculated')
-  CandidateList(v-if='stuffCalculated')
+  //- ParallelPlot
+  CandidateList
 
 
 </template>
@@ -31,8 +31,8 @@ computed: {
   $DimMeta() {
     return this.$store.getters.getDimMeta
   },
-  $SelectedCands() {
-    return this.$store.getters.getSelectedCands
+  $SelectedCandsData() {
+    return this.$store.getters.getSelectedCandsData
   },
   $CandiData() {
     return this.$store.getters.getCandiData
@@ -53,11 +53,11 @@ data() {
 methods: {
   main() {
     // calculateStuff
-    this.setupDims()
-    this.setupCands()
+    // this.setupDims()
+    // this.setupCands()
     
-    this.storeAllData()
-    this.stuffCalculated = true
+    // this.storeAllData()
+    // this.stuffCalculated = true
   },
   
   setupDims() {

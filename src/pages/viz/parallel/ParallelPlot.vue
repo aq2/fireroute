@@ -21,7 +21,7 @@ created() {
 },
 
 mounted() {
-  this.main()
+  // this.main()
 },
 
 
@@ -95,8 +95,8 @@ methods: {
     var key = 0
     Object.values(this.$DimData).forEach((dimD) => {  
       if (dimD.crit) {
-        const {dimName, scores} = dimD
-        const {min, max} = dimD.stats
+        // const {dimName, scores} = dimD
+        // const {min, max} = dimD.stats
 
         const xValue = this.chartWidth * key / (this.nDims - 1)
 
@@ -110,13 +110,13 @@ methods: {
         this.yScales.push(yScale)
 
         // const candYs = []
-        const dimColor = this.randomColor()
+        // const dimColor = this.randomColor()
 
-        const dimObj = {key, dimName, scores, min, max, yScale, yAxis, dimColor, xValue}
+        // const dimObj = {key, dimName, scores, min, max, yScale, yAxis, dimColor, xValue}
 
-        this.dimsAll.push(dimObj)
-        this.dimNames.push(dimName)
-        key++
+        // this.dimsAll.push(dimObj)
+        // this.dimNames.push(dimName)
+        // key++
       }
     })
     // console.log(this.dimsAll)
