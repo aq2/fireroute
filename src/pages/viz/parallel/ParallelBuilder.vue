@@ -11,6 +11,7 @@ import * as my from './../../../builders/my'
 
 
 export default {
+
 created() {
   EventBus.$on('candsSelected', candIndices => {
     // this.buildSelectedCands(candIndices)
@@ -49,29 +50,9 @@ data() {
 methods: {
 
 main() {
-  this.buildSelectedCands()
   this.buildDims()
+  this.buildSelectedCands()
   this.storeAllData()
-},
-
-buildSelectedCands() {
-  const candIndices = this.selectedIndices
-  const nCands = candIndices.length
-  const palette = my.randomPalette(nCands)
-  
-  candIndices.forEach((cI, i) => {
-    const selKey = i
-    const cand = this.candiData[cI]
-    const name = cand.candID
-    const candKey = cand.candKey
-    const scores = cand.scores
-    const colour = palette[i]
-    const lit = false
-    const faded = false
-    const candObj = {selKey, name, candKey, scores, colour, lit, faded}
-    this.cands.push(candObj)
-  }) 
-  console.log('cands', this.cands)  
 },
 
 buildDims() {
@@ -106,8 +87,41 @@ buildDims() {
       this.dimNames.push(dimName)
       key++
     }
-  })  
+  })
+  // console.log('PB dims', this.dims)
 },
+
+
+buildSelectedCands() {
+  const candIndices = this.selectedIndices
+  const nCands = candIndices.length
+  const palette = my.randomPalette(nCands)
+  
+  candIndices.forEach((cI, i) => {
+    const selKey = i
+    const cand = this.candiData[cI]
+    const name = cand.candID
+    const candKey = cand.candKey
+
+    const candScores = []
+    this.dims.forEach((dim, j) => {
+      dim.scores.forEach((dimScore, n) => {
+        if (i == n) {
+          candScores.push(dimScore)
+        }
+      })
+    })
+
+    const colour = palette[i]
+    const lit = false
+    const faded = false
+    const candObj = {selKey, name, candKey, candScores, colour, lit, faded}
+    this.cands.push(candObj)
+  }) 
+  // console.log('cands', this.cands)
+},
+
+
 
 storeAllData() {
     const selectedData = {dims: this.dims, cands: this.cands}

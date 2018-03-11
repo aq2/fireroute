@@ -25,9 +25,9 @@ mounted() {
 
 data() {
   return {
-    nCands: 0, nLit: 0, nFaded: 0, nDims: 0, 
-    candColors: [], candPalette: [],
-    dimsAll: [], candsAll: [], pathsAll: [],
+    // nCands: 0, nLit: 0, nFaded: 0, nDims: 0, 
+    // candColors: [], candPalette: [],
+    // dimsAll: [], candsAll: [], pathsAll: [],
     // superData: {dimsAll: [], candsAll: [], pathsAll: [] },  // computed?
     cands: [], candNames: [], 
   }
@@ -234,22 +234,6 @@ methods: {
     my.$('bulb'+i).style.opacity = '0.33'    
   },
 
-  myXY(x, y) {
-    return 'translate(' + x + ',' + y + ')'
-  },
-
-  randomColor() {
-    // todo may be better to evenly distribute (with minor randomness),
-    // then shuffle the colors throughout pallete,
-    // so this function will either return whole pallete
-    // or random unchosen one
-    var h = d3.randomUniform()() * 360
-    var myS = d3.randomUniform(0.2, 1)() * 100
-    var myL = d3.randomUniform(0.3, 1)() * 100
-    // console.log('hsv', Math.round(h), Math.round(myS), Math.round(myL))
-    return 'hsl(' + h + ', ' + myS +'%, ' + myL + '%)'
-    // }
-  },
 
 
 } // end methods  
@@ -260,19 +244,6 @@ methods: {
 
 <style lang="stylus" scoped>
 
-// html 
-//   height 100%
-
-// body
-//   height 100%
-//   overflow hidden
-//   display flex
-//   margin 0
-
-.column
-  height 100%
-  display flex
-  flex-direction column
 
 #payge
   margin 0
@@ -291,25 +262,6 @@ methods: {
   padding 1rem
   flex-shrink 0
   
-
-.bottom
-  flex-grow 1
-  overflow-y auto
-
-.top-left {
-    flex-shink: 0;
-}
-
-.top-right {
-    flex-shrink: 0;
-    display: inline-flex;
-}
-svg
-  background-color $g3
-  // position fixed
-
-
-
 
 .nameBtn
   width 160px

@@ -1,8 +1,8 @@
 <template lang="pug">
   
 #gfx(class='column')
-  h1(class='top-right') gig    
-  svg(id='mySvg' class='bottom')
+  //- h1(class='top-right') gig    // todo filename?
+  svg(id='mySvg')
   
 </template>
 
@@ -21,7 +21,7 @@ created() {
 },
 
 mounted() {
-  // this.main()
+  this.main()
 },
 
 
@@ -40,6 +40,7 @@ data() {
     yAxes: [], yScales: [],
     dimsAll: [], candsAll: [], pathsAll: [],
     superData: {dimsAll: [], candsAll: [], pathsAll: [] },  // computed?
+    
   }
 },
 
@@ -50,24 +51,29 @@ computed: {
   $DimMeta() {
     return this.$store.getters.getDimMeta
   },
-  $SelectedCands() {
-    return this.$store.getters.getSelectedCands
+  $SelectedData() {
+    return this.$store.getters.getSelectedData
   },
   $CandiData() {
     return this.$store.getters.getCandiData
   },
+  
 },
 
 methods: {
   main() {
     this.initChart()
-    this.initDimsAll()
-    // this.initCandsAll()
+    // this.initDimsAll()
+    const dims = this.calcDimsScales()
+    const cands = this.calcCandsScales()
+    const allData = {cands, dims}
+    this.$store.dispatch('setSelectedData', allData)
+    
     this.setupChart()
-    this.randomPalette(this.nCands)
+    // this.randomPalette(this.nCands)
     this.plotCircles()
     this.plotPaths()
-    this.setChartEvents()
+    // this.setChartEvents()
   },
 
   initChart() {
@@ -76,8 +82,8 @@ methods: {
     this.svgWidth = Math.round(this.windowW * this.svgWidthRatio)
     this.chartHeight = this.svgHeight - this.margin
     this.chartWidth = this.svgWidth - this.margin
-
-     // the whole svg
+    
+    // the whole svg
     this.svg = d3.select('#mySvg')
                   .attr('height', this.svgHeight)
                   .attr('width', this.svgWidth)
@@ -89,14 +95,13 @@ methods: {
                           .attr('transform', this.myXY(this.margin/2, this.margin/2))
   },
 
-  initDimsAll() {
-    this.nDims = this.$DimMeta.crits.length
+  calcDimsScales() {
+    const dims = this.$SelectedData.dims
+    // const cands = this.$SelectedData.cands
+    this.nDims = dims.length
 
-    var key = 0
-    Object.values(this.$DimData).forEach((dimD) => {  
-      if (dimD.crit) {
-        // const {dimName, scores} = dimD
-        // const {min, max} = dimD.stats
+    dims.forEach((dimD) => {  
+        const {key, min, max} = dimD
 
         const xValue = this.chartWidth * key / (this.nDims - 1)
 
@@ -109,59 +114,36 @@ methods: {
         this.yAxes.push(yAxis)
         this.yScales.push(yScale)
 
-        // const candYs = []
-        // const dimColor = this.randomColor()
-
-        // const dimObj = {key, dimName, scores, min, max, yScale, yAxis, dimColor, xValue}
-
-        // this.dimsAll.push(dimObj)
-        // this.dimNames.push(dimName)
-        // key++
-      }
+        dimD.xValue = xValue
+        dimD.yScale = yScale
+        dimD.yAxis = yAxis
     })
-    // console.log(this.dimsAll)
-    this.superData.dimsAll = this.dimsAll
-    this.superData.dimNames = this.dimNames
+    
+    // console.log('dims', dims)
+    return dims
   },
 
-//
-  // initCandsAll() {
-  //   this.nCands = this.$SelectedCands.length
+  calcCandsScales() {
+    // for each cand, calc x/y from scales and candScores
+    const cands = this.$SelectedData.cands
+    const dims = this.$SelectedData.dims
 
-  //   // todo - sort out unfaded/lit with candObj
-  //   for (var i=0, l=this.nCands; i<l; i++) {
-  //     this.unfaded.push(true)
-  //     this.lit.push(false)
-  //   }
+    cands.forEach((cand, i) => {
+      const yVals = []
+      const xVals = []
 
-  //   Object.values(this.$SelectedCands).forEach((cand, i) => {
-  //     const key = i
-  //     const name = this.$CandiData[cand].candID
-  //     const candScores = []
-  //     // loop over scores to get ys - where to get scores from?
-  //     const yVals = []   // qq
-  //     const xVals = []
-  //     Object.values(this.superData.dimsAll).forEach((dimObj, dS) => {
-  //       dimObj.scores.forEach((score, n) => {
-  //         if (i == n) {
-  //           candScores.push(score)
-  //           var valY = dimObj.yScale(score)
-  //           yVals.push(valY)
-  //         }
-  //       })
-  //       var candX = this.chartWidth * dS / (this.nDims - 1)
-  //       xVals.push(candX) 
-  //     })
-  //     const lit = true
-  //     const hidden = false
-  //     const colour = ''
+      cand.candScores.forEach((score,j) => {
+        var valY = Math.round(dims[j].yScale(score))
+        yVals.push(valY)
+        var candX = Math.round(this.chartWidth * j / (this.nDims - 1))
+        xVals.push(candX)        
+      })
 
-  //     const candObj = {key, name, candScores, yVals, xVals, colour, lit, hidden}
-  //     this.candsAll.push(candObj)
-  //   })
-  //   this.superData.candsAll = this.candsAll
-  // },
-//
+      cand.yVals = yVals
+      cand.xVals = xVals
+    })
+    return cands
+  },
 
   setupChart() {
     // setup axes
@@ -184,8 +166,8 @@ methods: {
     this.yAxesGrp = this.axesGrp.append('g')
                     .attr('class', 'yAxes')
 
-    // todo - enter()?   // use superData instead??
-    Object.values(this.superData.dimsAll).forEach((dimObj) => {
+    const dims = this.$SelectedData.dims
+    dims.forEach((dimObj) => {
        this.yAxesGrp.append('g')
               .attr('class', 'yAxis' + dimObj.key)
               .call(dimObj.yAxis)
@@ -203,7 +185,9 @@ methods: {
 
   plotCircles() {
     // for each dim, plot circles
-    Object.values(this.superData.dimsAll).forEach((dimO, dimN) => {
+    const dims = this.$SelectedData.dims
+    
+    dims.forEach((dimO, dimN) => {
       // plot points on axis for dimension scores
       var dimCircles = this.circlesGrp.append('g')
                         .attr('class', 'circle' + dimN)
@@ -213,7 +197,7 @@ methods: {
           .append('circle')
           .attr('class', () => dimO.dimName)                
           .attr('id', (d, cand) => dimO.dimName + cand)                
-          .attr('cx', () => this.chartWidth*dimN/(this.dimNames.length - 1.0))
+          .attr('cx', () => this.chartWidth*dimN/(dims.length - 1.0))
           .attr('cy', (d) =>  dimO.yScale(d))
           .attr('r', '5')
           .attr('fill', dimO.dimColor)
@@ -225,7 +209,7 @@ methods: {
     //
     // need to build up candScores from dimScores
     let candScores = [] //, candNames = []
-    let selectedCands = this.$SelectedCands
+    let selectedCands = this.$SelectedData.cands
 
     // // get the candIDs for naming
     // selectedCands.forEach((c) => {
@@ -242,15 +226,13 @@ methods: {
                     .curve(d3.curveMonotoneX)
 
     // append paths for each candidate - todo use enter() etc?
-    this.$selectedCands.forEach((candO, c) => {
-      var ys = candO.yVals
+    selectedCands.forEach((cand, c) => {
       this.pathsGrp.append('path')
-              .attr('d', line(ys))  // yVals - for some reason wanna feed this this superdata
+              .attr('d', line(cand.yVals))
               .attr('class', 'path')
               .attr('id', 'path' + c)
               .attr('fill', 'none')
-              .attr('stroke', candO.colour)  // todo eh?
-              // .attr('stroke', this.candColors[c])  // todo eh?
+              .attr('stroke', cand.colour)
               .attr('stroke-width', '4px')
     }) 
   }, 
