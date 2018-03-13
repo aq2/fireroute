@@ -17,6 +17,9 @@ export default {
 created() {
   EventBus.$on('fadePath', i => {
     this.fadePath(i)
+  }),
+  EventBus.$on('flashPath', (i, yesNo) => {
+    this.flashPath(i, yesNo)
   })
 },
 
@@ -27,50 +30,37 @@ mounted() {
 
 data() {
   return {
-    svgHeightRatio: 0.75, svgWidthRatio: 0.8,  // fractions of window 
-    margin: 60, // 2*30
-    windowW: window.innerWidth, windowH: window.innerHeight,
-    dimNames: [],   // could be computed from superdata
-    candNames: [],  // could be computed from superdata
-    unfaded: [], lit: [],   // todo get rid of these and change fade(i)
-    nCands: 0, nLit: 0, nFaded: 0, nDims: 0,
-    svgHeight: 0, svgWidth: 0, 
-    chartHeight: 0, chartWidth: 0,
-    svg:{}, chartGrp: {},
-    yAxes: [], yScales: [],
-    dimsAll: [], candsAll: [], pathsAll: [],
-    superData: {dimsAll: [], candsAll: [], pathsAll: [] },  // computed?
+    // unfaded: [], lit: [],   // todo get rid of these and change fade(i)
+    // nCands: 0, nLit: 0, nFaded: 0,
     
+    dimNames: [],   // could be computed from superdata
+    nDims: 0,
+    svg:{}, chartGrp: {},
+    svgHeightRatio: 0.99, svgWidthRatio: 0.8,  // fractions of window 
+    margin: 60, // 2*30, 
+    headerHeight: 100,
+    windowW: window.innerWidth, windowH: window.innerHeight,
+    chartHeight: 0, chartWidth: 0,
+  
   }
 },
 
 computed: {
-  $DimData() {
-    return this.$store.getters.getDimData
-  },
-  $DimMeta() {
-    return this.$store.getters.getDimMeta
-  },
   $SelectedData() {
     return this.$store.getters.getSelectedData
   },
-  $CandiData() {
-    return this.$store.getters.getCandiData
-  },
-  
 },
 
 methods: {
   main() {
     this.initChart()
-    // this.initDimsAll()
+    
     const dims = this.calcDimsScales()
     const cands = this.calcCandsScales()
     const allData = {cands, dims}
     this.$store.dispatch('setSelectedData', allData)
     
     this.setupChart()
-    // this.randomPalette(this.nCands)
     this.plotCircles()
     this.plotPaths()
     // this.setChartEvents()
@@ -78,15 +68,15 @@ methods: {
 
   initChart() {
     // set size of svg 
-    this.svgHeight = Math.round((this.windowH - 100) * this.svgHeightRatio)  // 100 = headerHeight
-    this.svgWidth = Math.round(this.windowW * this.svgWidthRatio)
-    this.chartHeight = this.svgHeight - this.margin
-    this.chartWidth = this.svgWidth - this.margin
+    const svgHeight = Math.round((this.windowH - this.headerHeight) * this.svgHeightRatio)
+    const svgWidth = Math.round(this.windowW * this.svgWidthRatio)
+    this.chartHeight = svgHeight - this.margin
+    this.chartWidth = svgWidth - this.margin
     
     // the whole svg
     this.svg = d3.select('#mySvg')
-                  .attr('height', this.svgHeight)
-                  .attr('width', this.svgWidth)
+                  .attr('height', svgHeight)
+                  .attr('width', svgWidth)
     
     // drawable area of chart, inside the margin
     this.chartGrp = this.svg
@@ -97,7 +87,6 @@ methods: {
 
   calcDimsScales() {
     const dims = this.$SelectedData.dims
-    // const cands = this.$SelectedData.cands
     this.nDims = dims.length
 
     dims.forEach((dimD) => {  
@@ -110,16 +99,12 @@ methods: {
                           .range([this.chartHeight, 0])
         
         const yAxis = d3.axisLeft(yScale)
-
-        this.yAxes.push(yAxis)
-        this.yScales.push(yScale)
-
+      
         dimD.xValue = xValue
         dimD.yScale = yScale
         dimD.yAxis = yAxis
     })
     
-    // console.log('dims', dims)
     return dims
   },
 
@@ -128,7 +113,7 @@ methods: {
     const cands = this.$SelectedData.cands
     const dims = this.$SelectedData.dims
 
-    cands.forEach((cand, i) => {
+    cands.forEach((cand) => {
       const yVals = []
       const xVals = []
 
@@ -147,7 +132,7 @@ methods: {
 
   setupChart() {
     // setup axes
-    this.axesGrp = this.chartGrp.append('g')
+    const axesGrp = this.chartGrp.append('g')
                         .attr('class', 'axes')
  
     // setup shared x scale and axis
@@ -155,20 +140,20 @@ methods: {
                       .domain(this.dimNames)
                       .range([0, this.chartWidth])
 
-    this.xAxis = d3.axisBottom(this.xScale)
+    const xAxis = d3.axisBottom(this.xScale)
                     .tickPadding(5)
  
-    this.axesGrp.append('g')
+    axesGrp.append('g')
             .attr('id', 'xAxis')
-            .call(this.xAxis)
+            .call(xAxis)
             .attr('transform', this.myXY(0, this.chartHeight))
 
-    this.yAxesGrp = this.axesGrp.append('g')
+    const yAxesGrp = axesGrp.append('g')
                     .attr('class', 'yAxes')
 
     const dims = this.$SelectedData.dims
     dims.forEach((dimObj) => {
-       this.yAxesGrp.append('g')
+       yAxesGrp.append('g')
               .attr('class', 'yAxis' + dimObj.key)
               .call(dimObj.yAxis)
               .attr('transform', this.myXY(this.chartWidth * dimObj.key / (this.nDims - 1), 0))
@@ -187,38 +172,26 @@ methods: {
     // for each dim, plot circles
     const dims = this.$SelectedData.dims
     
-    dims.forEach((dimO, dimN) => {
+    dims.forEach((dimO, i) => {
       // plot points on axis for dimension scores
       var dimCircles = this.circlesGrp.append('g')
-                        .attr('class', 'circle' + dimN)
+                        .attr('class', 'circle' + i)
       dimCircles.selectAll('circle.' + dimO.dimName)                        
         .data(dimO.scores)                           
         .enter()
           .append('circle')
           .attr('class', () => dimO.dimName)                
           .attr('id', (d, cand) => dimO.dimName + cand)                
-          .attr('cx', () => this.chartWidth*dimN/(dims.length - 1.0))
-          .attr('cy', (d) =>  dimO.yScale(d))
+          .attr('cx', () => this.chartWidth * i / (dims.length - 1))
+          .attr('cy', d =>  dimO.yScale(d))
           .attr('r', '5')
           .attr('fill', dimO.dimColor)
     })
   },
 
   plotPaths() {
-
-    //
-    // need to build up candScores from dimScores
-    let candScores = [] //, candNames = []
     let selectedCands = this.$SelectedData.cands
 
-    // // get the candIDs for naming
-    // selectedCands.forEach((c) => {
-    //   this.candNames.push(this.$CandiData[c].candID)
-    //   candScores.push([])
-    //   // this.candColors.push(this.randomColor())     // qq
-    // })
-    
-    // ok, what about the lines?
     // path generator to build line
     const line = d3.line()
                     .x((d, i) => (this.chartWidth*i/(this.nDims - 1)))
@@ -237,7 +210,11 @@ methods: {
     }) 
   }, 
 
-  setChartEvents() {
+
+
+
+
+  setChartEvents() {  // for paths!
     d3.selectAll('path')
       .on('mouseover', () => {
         const pathID = d3.event.srcElement.id
@@ -259,6 +236,10 @@ methods: {
       })
 
   },
+
+
+ 
+
 
   eyeClicked(i) {
     if (this.unfaded[i]) {
@@ -413,46 +394,6 @@ methods: {
     return 'translate(' + x + ',' + y + ')'
   },
 
-  randomColor() {
-    // todo may be better to evenly distribute (with minor randomness),
-    // then shuffle the colors throughout pallete,
-    // so this function will either return whole pallete
-    // or random unchosen one
-    var h = d3.randomUniform()() * 360
-    var myS = d3.randomUniform(0.2, 1)() * 100
-    var myL = d3.randomUniform(0.3, 1)() * 100
-    // console.log('hsv', Math.round(h), Math.round(myS), Math.round(myL))
-    return 'hsl(' + h + ', ' + myS +'%, ' + myL + '%)'
-    // }
-  },
-
-  // make palette of n colors 'evenly' thru hue wheel
-  randomPalette() {
-    var n = this.nCands
-    var slice = 360/n
-    var h = [], s = [], l = []
-    this.candColors = []
-
-    // numbers to tweak - should s = f(l) or vv? qq
-    const minS = 0.7, maxS = 1
-    const minL = 0.2, maxL = 0.7
-
-    for (var i=0; i<n; i++) {
-      // h.push(slice * i * d3.randomUniform(0.9, 1.1)())
-      h.push(slice * i * d3.randomUniform(0.9, 1.1)())
-      s.push(d3.randomUniform(minS, maxS)() * 100)
-      l.push(d3.randomUniform(minL, maxL)() * 100)
-    }
-    d3.shuffle(h)
-    
-    h.forEach((hue, i) => {
-      // this.candColors.push('hsl(' + h[i] + ', ' + s[i] +'%, ' + l[i] + '%)')
-      this.superData.candsAll[i].colour = 'hsl(' + h[i] + ', ' + s[i] +'%, ' + l[i] + '%)'
-    })
-  },
-
-  
-
   $(ID) {
     return document.getElementById(ID)
   },
@@ -465,79 +406,16 @@ methods: {
 
 <style lang="stylus" scoped>
 
-// html 
-//   height 100%
-
-// body
-//   height 100%
-//   overflow hidden
-//   display flex
-//   margin 0
-
-.column
-  height 100%
-  display flex
-  flex-direction column
-
 #payge
   margin 0
   display flex
   overflow hidden
-  // height 100%
-  // box-sizing border-box
-  
 
-#gfx
-  // overflow-y auto
-  // flex-grow 1
-
-#list
-  background $g5
-  padding 1rem
-  flex-shrink 0
-  
-
-.bottom
-  flex-grow 1
-  overflow-y auto
-
-.top-left {
-    flex-shink: 0;
-}
-
-.top-right {
-    flex-shrink: 0;
-    display: inline-flex;
-}
 svg
   background-color $g3
   // position fixed
 
 
-button
-  color $g0
-  margin-bottom 0.5rem
-  border 3px solid transparent
-  box-sizing border-box
-  padding 0.5rem
-  margin-right 0.25rem
-
-.nameBtn
-  width 180px
-
-button:hover
-  background-color $g2
-
-.eye, .bulb
-  color $g0
-  background none
-
-.eye
-  margin-left 0.5rem
-  // margin-top 15px
-
-.bulbBtn
-  opacity 0.3
 
 // need to refer to main.styl to change chart css!
 

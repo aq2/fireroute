@@ -25,27 +25,31 @@ mounted() {
 
 data() {
   return {
+    nFaded: 0,
     // nCands: 0, nLit: 0, nFaded: 0, nDims: 0, 
     // candColors: [], candPalette: [],
     // dimsAll: [], candsAll: [], pathsAll: [],
     // superData: {dimsAll: [], candsAll: [], pathsAll: [] },  // computed?
-    cands: [], candNames: [], 
+    // cands: [], 
+    candNames: [], 
   }
 },
 
 computed: {
   $SelectedData() {
     return this.$store.getters.getSelectedData    
+  },
+  cands() {
+    return this.$store.getters.getSelectedData.cands    
   }
 },
 
 methods: {
   main() {
-    this.setupCands()
+    this.showCands()
   },
 
-  setupCands() {
-    this.cands = this.$SelectedData.cands
+  showCands() {
     this.candNames = this.cands.map(c => c.name)
 
     // d3-ize it
@@ -56,24 +60,49 @@ methods: {
           .append('div')
             .attr('class', 'pathButtons')
           .append('button')
-            .html(d => d.name )
+            .text(d => d.name )
             .attr('id', (d, i) => 'cand' + i)
             .style('background', d => d.colour)
-            .classed('buttonC', true) // ? has to be in main.styl
-            .on('mouseover', (d, i) => this.fadeEye(i))
-            .on('mouseout', (d, i) => this.lightEye(i))    
-            .on('click', (d, i) => this.eyeClicked(i))
+            .classed('nameBtn', true) // ? has to be in main.styl
+            .on('mouseover', (d, i) => this.flashPath(i, true))
+            .on('mouseout', (d, i) => this.flashPath(i, false))
+            // .on('mouseout', (d, i) => this.lightEye(i))    
+            .on('click', (d, i) => this.nameClicked(i))
+            .append('img')
+              .attr('src', my.eye18)
+              .classed('eye', 'true')
+            
+
 
     // don't need data and enter, as we already have selectable nodes
     d3.select('#candList')                      
         .selectAll('div')
           .append('button')
-            .html('S')
-            .attr('id', (d, i) => 'bulb' + i)
             .style('background', d => d.colour)
-            .style('opacity', '0.4')
+            .classed('bulbBtn', true)
+            .append('img')
+              .attr('src', my.bulb18)
+              .attr('id', (d, i) => 'bulb' + i)
+              // .classed('bulbImg', 'true')
 
   },
+
+   nameClicked(i) {
+    const cand = this.cands[i]
+    const faded = cand.faded
+    if (faded) {
+      this.unfadeName(i)
+      this.unfadePath(i)
+      this.unfaded--
+    } else {
+      this.fadeName(i)
+      this.fadePath(i)
+      this.unfaded++      
+    }
+
+  },
+
+
 
   eyeClicked(i) {
     this.fadeEye(i)
@@ -142,8 +171,16 @@ methods: {
     }
   },
   
-  fadeEye(i) {
+  fadeName(i) {
+    const cand = this.$SelectedData.cands[i]
+    cand.faded = true
     this.changeButton(i, 0.5, true)  // dotted=true
+  },
+
+  unfadeName(i) {
+    const cand = this.$SelectedData.cands[i]
+    cand.faded = false
+    this.changeButton(i, 1, false)  // dotted=false    
   },
 
   lightEye(i) {
@@ -185,7 +222,7 @@ methods: {
     }
   },
 
-  lightPath(i) {
+  unfadePath(i) {
     var id = '#path' + i
     d3.select(id)
       .style('stroke-width', '4')    
@@ -197,7 +234,6 @@ methods: {
     // should send a message
     EventBus.$emit('fadePath', i)
 
-
     var id = '#path' + i
     d3.select(id)
       .style('stroke-width', '3')
@@ -207,8 +243,9 @@ methods: {
   },
 
   flashPath(i, yesNo) {
-    var id = '#path' + i
-    d3.select(id).classed('flash', yesNo)
+    EventBus.$emit('flashPath', i, yesNo)
+    // var id = '#path' + i
+    // d3.select(id).classed('flash', yesNo)
   },
 
   flashEye(i, yesNo) {
@@ -244,45 +281,11 @@ methods: {
 
 <style lang="stylus" scoped>
 
-
-#payge
-  margin 0
-  display flex
-  overflow hidden
-  // height 100%
-  // box-sizing border-box
-  
-
-#gfx
-  // overflow-y auto
-  // flex-grow 1
-
 #list
   background $g5
   padding 1rem
   flex-shrink 0
   
-
-.nameBtn
-  width 160px
-  font-size 1rem
-  padding 0.5rem
-  margin 0
-
-button:hover
-  background-color $g2
-
-.eye, .bulb
-  color $g0
-  background none
-
-.eye
-  margin-left 0.5rem
-  // margin-top 15px
-
-.bulbBtn
-  opacity 0.3
-
 // need to refer to main.styl to change chart css!
 
 </style>

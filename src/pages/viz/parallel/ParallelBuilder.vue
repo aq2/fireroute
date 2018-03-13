@@ -6,15 +6,14 @@
 
 
 <script>
+
 import {EventBus} from '../../../main'
 import * as my from './../../../builders/my'
-
 
 export default {
 
 created() {
   EventBus.$on('candsSelected', candIndices => {
-    // this.buildSelectedCands(candIndices)
     this.selectedIndices = candIndices
     this.main()
   })
@@ -23,13 +22,6 @@ created() {
 computed: {
   candiData() {
     return this.$store.getters.getCandiData
-  },
-  candL() {
-    const cands = this.$store.getters.getCandMeta.candidates
-    return cands.length
-  },
-  candiMeta() {
-    return this.$store.getters.getCandiMeta
   },
   dimMeta() {
     return this.$store.getters.getDimMeta
@@ -43,7 +35,7 @@ computed: {
 data() {
   return {
     selectedIndices: [], 
-    cands: [], dims: [], dimNames: [], dimScores: []
+    cands: [], dims: []
   }
 },
 
@@ -63,34 +55,17 @@ buildDims() {
   Object.values(this.dimData).forEach((dimD) => {  
     if (dimD.crit) {
       const {dimName, scores} = dimD
-      this.dimScores.push(scores)
+      // this.dimScores.push(scores)
       const {min, max} = dimD.stats
       const dimColor = dimsPalette[key]
 
-      //    scales and axes
-        // const xValue = this.chartWidth * key / (this.nDims - 1)
-
-        // const yScale = d3.scaleLinear()
-        //                   .domain([min, max])
-        //                   .range([this.chartHeight, 0])
-        
-        // const yAxis = d3.axisLeft(yScale)
-
-        // this.yAxes.push(yAxis)
-        // this.yScales.push(yScale)
-
-        // const candYs = []
-      //
-
       const dimObj = {key, dimName, scores, min, max, dimColor}
       this.dims.push(dimObj)
-      this.dimNames.push(dimName)
+      // this.dimNames.push(dimName)
       key++
     }
   })
-  // console.log('PB dims', this.dims)
 },
-
 
 buildSelectedCands() {
   const candIndices = this.selectedIndices
@@ -104,7 +79,7 @@ buildSelectedCands() {
     const candKey = cand.candKey
 
     const candScores = []
-    this.dims.forEach((dim, j) => {
+    this.dims.forEach(dim => {
       dim.scores.forEach((dimScore, n) => {
         if (i == n) {
           candScores.push(dimScore)
@@ -118,7 +93,6 @@ buildSelectedCands() {
     const candObj = {selKey, name, candKey, candScores, colour, lit, faded}
     this.cands.push(candObj)
   }) 
-  // console.log('cands', this.cands)
 },
 
 
