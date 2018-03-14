@@ -44,7 +44,7 @@ export default {
         .append('div')
         .attr('id', (d) => d)
         .text((d) => d)
-        .attr('class', 'cap')
+        .attr('class', 'capital')
 
       miniCands.forEach((mC) => {
         const {key, ID} = mC

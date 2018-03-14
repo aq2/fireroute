@@ -1,0 +1,59 @@
+$bg = $g9
+$fg = $g0
+
+// tooltip container
+.tooltip
+  cursor pointer
+  position relative
+  display inline-block
+
+// tooltip text
+.tooltiptext
+	color $fg
+	width 300px
+	padding 5px 0
+	visibility hidden
+	text-align center
+	border-radius 6px
+	background-color $bg
+
+	/* Position the tooltip text */
+	z-index 1
+	position absolute
+
+	/* Fade in tooltip */
+	opacity 0
+	transition opacity 0.5s
+
+/* Position the tooltip text */
+.tooltip-right
+	left 133%
+	
+.tooltip-left
+	right 133%
+
+.tooltip-under
+  top 133%
+
+/* Tooltip arrow */
+.tooltiptext::after
+	top 35%
+	content " "
+	border-width 5px
+	position absolute
+	border-style solid
+
+.tooltip-right.tooltiptext::after 
+	right 100%
+	margin-left -5px
+	border-color transparent $bg transparent transparent
+
+.tooltip-left.tooltiptext::after 
+	left 100%
+	margin-right -25px
+	border-color transparent transparent transparent $bg
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext
+	opacity 0.8
+	visibility visible
