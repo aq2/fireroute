@@ -1,5 +1,7 @@
 import * as d3 from 'd3'
 
+// my helper functions
+
 // make palette of n colors 'evenly' thru hue wheel
 export function randomPalette(n) {
   // var n = this.nCands
