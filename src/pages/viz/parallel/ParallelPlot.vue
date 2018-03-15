@@ -15,11 +15,14 @@ import {EventBus} from '../../../main'
 export default {
 
 created() {
-  EventBus.$on('fadePath', i => {
-    this.fadePath(i)
+  EventBus.$on('dimPath', (i, yesNo) => {
+    this.dimPath(i, yesNo)
   }),
   EventBus.$on('flashPath', (i, yesNo) => {
     this.flashPath(i, yesNo)
+  }),
+  EventBus.$on('fatPath', (i, yesNo) => {
+    this.fatPath(i, yesNo)
   })
 },
 
@@ -211,6 +214,37 @@ methods: {
   }, 
 
 
+  flashPath(i, yesNo) {
+    d3.select('#path' + i).classed('flash', yesNo)
+  },
+
+  fatPath(i, yesNo) {
+    d3.select('#path' + i).classed('fatPath', yesNo)
+  },
+
+  dimPath(i, yesNo) {
+    d3.select('#path' + i).classed('dimmedPath', yesNo)
+  },
+
+
+
+
+  lightPath(i) {
+    var id = '#path' + i
+    d3.select(id)
+      .style('stroke-width', '4')    
+      .style('stroke-dasharray', ('0, 0'))
+      .style('opacity', '1')      
+  },
+
+  
+
+
+ 
+
+
+
+
 
 
 
@@ -303,74 +337,18 @@ methods: {
     }
   },
   
-  fadeEye(i) {
-    this.changeButton(i, 0.5, true)  // dotted=true
-  },
-
-  lightEye(i) {
-    this.changeButton(i, 1, false)  // dotted=false    
-  },
-
-  fadeAll() {
-    for (var i=0, l=this.nCands; i<l; i++) {
-      this.fadeEye(i)
-      this.unfaded[i] = false
-      this.fadePath(i)
-      this.unLightBulb(i)
-      this.lit[i] = false
-    }
-    this.nLit = 0
-    this.nFaded = this.nCands
-  },
-    
-  resetAll() {
-    for (var i=0, l=this.nCands; i<l; i++) {
-      this.lightEye(i)
-      this.unfaded[i] = true
-      this.lightPath(i)
-      this.unLightBulb(i)
-      this.lit[i] = false
-    }
-    this.nLit = 0
-  },
-
-  fadeAllEyes() {
-    for (var i=0, l=this.nCands; i<l; i++) {
-      this.fadeEye(i)
-    }
-  },
-
+  
+  
+  
   fadeAllPaths() {
     for (var i=0, l=this.nCands; i<l; i++) {
       this.fadePath(i)
     }
   },
 
-  lightPath(i) {
-    var id = '#path' + i
-    d3.select(id)
-      .style('stroke-width', '4')    
-      .style('stroke-dasharray', ('0, 0'))
-      .style('opacity', '1')      
-  },
+  
 
-  fadePath(i) {
-    var id = '#path' + i
-    d3.select(id)
-      .style('stroke-width', '3')
-      .style('stroke-dasharray', ('8, 8'))
-      .style('opacity', '0.5')
-  },
-
-  flashPath(i, yesNo) {
-    var id = '#path' + i
-    d3.select(id).classed('flash', yesNo)
-  },
-
-  flashEye(i, yesNo) {
-    var id = '#cand' + i
-    d3.select(id).classed('flash', yesNo)
-  },
+  
 
   changeButton(i, opac, dotted) {
     var btn = 'cand' + i

@@ -1,3 +1,5 @@
+// normal button state
+
 .nameBtn
   color $g0
   margin-bottom 0.5rem
@@ -8,6 +10,8 @@
   width 150px
   height 2.5rem
 
+.eye
+  float right
 
 .bulbBtn
   padding 0.35rem
@@ -15,16 +19,44 @@
   opacity 0.4
   color $g0
 
+
+// hovers
+
 .nameBtn:hover
+  transition all 2s linear
+  border 3px dashed $g0
+
+.dimmedButton
   opacity 0.3
   border 3px dashed $g0
-  
-// .bulbImg
-//   padding 0
-//   margin 0
-//   width 18px
-//   height 18px
 
-.eye
-  // align right
-  float right
+.dimmedPath
+  transition all 0.5s linear
+  stroke-width 3px
+  stroke-dasharray 8,8
+  opacity 0.5
+
+.fatPath
+  transition all 0.5s linear  
+  stroke-width 10px
+  
+
+.flashPath
+  //
+
+
+
+
+
+
+
+// // .bulbImg
+// //   padding 0
+// //   margin 0
+// //   width 18px
+// //   height 18px
+
+
+
+// .white
+//   color white
