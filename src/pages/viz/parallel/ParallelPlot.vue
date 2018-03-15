@@ -56,6 +56,8 @@ methods: {
     this.initChart()
     
     const dims = this.calcDimsScales()
+    // this.dimNames = dims.map(c => c.name)
+    
     const cands = this.calcCandsScales()
     const allData = {cands, dims}
     this.$store.dispatch('setSelectedData', allData)
@@ -63,7 +65,6 @@ methods: {
     this.setupChart()
     this.plotCircles()
     this.plotPaths()
-    this.setChartEvents()
   },
 
   initChart() {
@@ -90,7 +91,8 @@ methods: {
     this.nDims = dims.length
 
     dims.forEach((dimD) => {  
-        const {key, min, max} = dimD
+        const {key, dimName, min, max} = dimD
+        this.dimNames.push(dimName)
 
         const xValue = this.chartWidth * key / (this.nDims - 1)
 
@@ -143,10 +145,10 @@ methods: {
     const xAxis = d3.axisBottom(this.xScale)
                     .tickPadding(5)
  
-    axesGrp.append('g')
+    axesGrp.append('g')   // qq
             .attr('id', 'xAxis')
-            .call(xAxis)
             .attr('transform', this.myXY(0, this.chartHeight))
+            .call(xAxis)
 
     const yAxesGrp = axesGrp.append('g')
                     .attr('class', 'yAxes')
@@ -207,8 +209,22 @@ methods: {
               .attr('fill', 'none')
               .attr('stroke', cand.colour)
               .attr('stroke-width', '5px')
+              .on('mouseover', (d) => this.flash(c, true))
+              .on('mouseout', (d) => this.flash(c, false))
+              .on('click', (d) =>  this.dim(c))
     }) 
   }, 
+
+  dim(i) {
+    this.dimPath(i, true)
+    EventBus.$emit('checkdimButton', i)
+  },
+
+  flash(i, yesNo) {
+    this.flashPath(i, yesNo)
+    this.fatPath(i, yesNo)
+    EventBus.$emit('flashButton', i, yesNo)
+  },
 
   flashPath(i, yesNo) {
     d3.select('#path' + i).classed('flash', yesNo)
@@ -222,40 +238,10 @@ methods: {
     d3.select('#path' + i).classed('dimmedPath', yesNo)
   },
 
-
-
-  // man this is shite!  use .on() events above
-  setChartEvents() {  // for paths!
-    d3.selectAll('path')
-      .on('mouseover', () => {
-        const pathID = d3.event.srcElement.id
-        var p = pathID.slice(4)
-        // this.flashEye(p, true)
-        this.flashPath(p, true)
-      })
-      .on('mouseout', () => {
-        const pathID = d3.event.srcElement.id
-        var p = pathID.slice(4)
-        // this.flashEye(p, false)
-        this.flashPath(p, false)
-      })
-      .on('click', () => {
-        const pathID = d3.event.srcElement.id
-        var p = pathID.slice(4)
-        this.bulbClicked(p)
-        // this.flashPath(p, false)
-      })
-
-  },
-
-
   myXY(x, y) {
     return 'translate(' + x + ',' + y + ')'
   },
 
-  $(ID) {
-    return document.getElementById(ID)
-  },
 
 } // end methods  
 
@@ -272,9 +258,6 @@ methods: {
 
 svg
   background-color $g3
-  // position fixed
-
-
 
 // need to refer to main.styl to change chart css!
 

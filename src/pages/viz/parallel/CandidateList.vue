@@ -18,13 +18,28 @@ import {EventBus} from '../../../main'
 
 
 export default {
+
+created() {
+  EventBus.$on('dimButton', (i, yesNo) => {
+    d3.select('#name' + i).classed('flash', yesNo)    
+  }),
+  EventBus.$on('flashButton', (i, yesNo) => {
+    d3.select('#name' + i).classed('flash', yesNo)    
+  }),
+  EventBus.$on('checkdimButton', (i) => {
+    this.checkDimmed(i)
+  })
+},
+
 mounted() {
    this.main()
 },
 
 data() {
   return {
-    candNames: [], dimmed: new Set(), allfaded: false
+    candNames: [], 
+    dimmed: new Set(), 
+    allfaded: false
   }
 },
 
@@ -52,18 +67,17 @@ methods: {
         .enter()
           .append('div')
             .attr('class', 'pathButtons')
-          .append('button')
-            .text(d => d.name )
-            .attr('id', (d, i) => 'name' + i)
-            .style('background', d => d.colour)
-            .classed('nameBtn', true) // ? has to be in main.styl
-            .on('mouseover', (d, i) => this.flash(i, true))
-            .on('mouseout', (d, i) => this.flash(i, false))
-            .on('click', (d, i) => this.checkDimmed(i))
-            .append('img')
-              .attr('src', my.eye18)
-              .classed('eye', 'true')
-            
+            .append('button')
+              .text(d => d.name )
+              .attr('id', (d, i) => 'name' + i)
+              .style('background', d => d.colour)
+              .classed('nameBtn', true) // ? has to be in main.styl
+              .on('mouseover', (d, i) => this.flash(i, true))
+              .on('mouseout', (d, i) => this.flash(i, false))
+              .on('click', (d, i) => this.checkDimmed(i))
+              .append('img')
+                .attr('src', my.eye18)
+                .classed('eye', 'true')            
   },
 
   flash(i, yesNo) {
