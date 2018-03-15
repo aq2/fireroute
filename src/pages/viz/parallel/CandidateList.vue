@@ -4,7 +4,6 @@
   h1 candidates
   #candList
   button(id='fader' @click='fadeAll') fade all
-  //- button(@click='fadeAll(false)') reset all
   //- button(@click='main') new palette
 
 
@@ -25,12 +24,6 @@ mounted() {
 
 data() {
   return {
-    // nFaded: 0,
-    // nCands: 0, nLit: 0, nFaded: 0, nDims: 0, 
-    // candColors: [], candPalette: [],
-    // dimsAll: [], candsAll: [], pathsAll: [],
-    // superData: {dimsAll: [], candsAll: [], pathsAll: [] },  // computed?
-    // cands: [], 
     candNames: [], dimmed: new Set(), allfaded: false
   }
 },
@@ -66,22 +59,11 @@ methods: {
             .classed('nameBtn', true) // ? has to be in main.styl
             .on('mouseover', (d, i) => this.flash(i, true))
             .on('mouseout', (d, i) => this.flash(i, false))
-            // .on('click', (d, i) => this.dim2(i))
             .on('click', (d, i) => this.checkDimmed(i))
-            // .on('click', (d, i) => this.nameClicked(i))
             .append('img')
               .attr('src', my.eye18)
               .classed('eye', 'true')
             
-    // add bulbs, don't need data/enter, already have selectable nodes
-    d3.select('#candList')                      
-        .selectAll('div')
-          .append('button')
-            .style('background', d => d.colour)
-            .classed('bulbBtn', true)
-            .append('img')
-              .attr('src', my.bulb18)
-              .attr('id', (d, i) => 'bulb' + i)
   },
 
   flash(i, yesNo) {
@@ -95,6 +77,7 @@ methods: {
     EventBus.$emit('dimPath', i, yesNo)
   },
 
+  // todo - tricky logic, could be improved vastly
   checkDimmed(i) {
     const alreadyDimmed = this.dimmed.delete(i)
     if (!alreadyDimmed) {
@@ -109,6 +92,7 @@ methods: {
       this.dimmed.clear()
     } else {
       d3.select('#fader').text('un fadeAll')
+      this.fillDimmed()
     }
     this.allfaded = !this.allfaded
     for (var i=0; i<this.candNames.length; i++) {
@@ -116,9 +100,13 @@ methods: {
     }
   },
 
+  fillDimmed() {
+    var n = this.candNames.length
+    for (var i=0; i<n; i++) {
+      this.dimmed.add(i)
+    }
+  }
   
-
-
 } // end methods  
 
 }

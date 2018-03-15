@@ -33,11 +33,8 @@ mounted() {
 
 data() {
   return {
-    // unfaded: [], lit: [],   // todo get rid of these and change fade(i)
-    // nCands: 0, nLit: 0, nFaded: 0,
-    
     dimNames: [],   // could be computed from superdata
-    nDims: 0,
+    // nDims: 0,
     svg:{}, chartGrp: {},
     svgHeightRatio: 0.99, svgWidthRatio: 0.8,  // fractions of window 
     margin: 60, // 2*30, 
@@ -66,7 +63,7 @@ methods: {
     this.setupChart()
     this.plotCircles()
     this.plotPaths()
-    // this.setChartEvents()
+    this.setChartEvents()
   },
 
   initChart() {
@@ -209,10 +206,9 @@ methods: {
               .attr('id', 'path' + c)
               .attr('fill', 'none')
               .attr('stroke', cand.colour)
-              .attr('stroke-width', '4px')
+              .attr('stroke-width', '5px')
     }) 
   }, 
-
 
   flashPath(i, yesNo) {
     d3.select('#path' + i).classed('flash', yesNo)
@@ -228,38 +224,19 @@ methods: {
 
 
 
-
-  lightPath(i) {
-    var id = '#path' + i
-    d3.select(id)
-      .style('stroke-width', '4')    
-      .style('stroke-dasharray', ('0, 0'))
-      .style('opacity', '1')      
-  },
-
-  
-
-
- 
-
-
-
-
-
-
-
+  // man this is shite!  use .on() events above
   setChartEvents() {  // for paths!
     d3.selectAll('path')
       .on('mouseover', () => {
         const pathID = d3.event.srcElement.id
         var p = pathID.slice(4)
-        this.flashEye(p, true)
+        // this.flashEye(p, true)
         this.flashPath(p, true)
       })
       .on('mouseout', () => {
         const pathID = d3.event.srcElement.id
         var p = pathID.slice(4)
-        this.flashEye(p, false)
+        // this.flashEye(p, false)
         this.flashPath(p, false)
       })
       .on('click', () => {
@@ -271,102 +248,6 @@ methods: {
 
   },
 
-
- 
-
-
-  eyeClicked(i) {
-    if (this.unfaded[i]) {
-      this.fadeEye(i)
-      this.fadePath(i)
-      this.unfaded[i] = false
-      this.nFaded++
-      // might have to unlite if in solo
-      if (this.lit[i]) {
-        this.unLightBulb(i)
-        this.lit[i] = false
-        this.nLit--
-      }
-    } else {
-      // todo if all faded, should lightbulb etc
-      this.lightEye(i)
-      this.lightPath(i)
-      this.unfaded[i] = true
-      if (this.nFaded <= this.nCands) {
-        this.lightBulb(i)
-        this.nLit++
-      }
-      this.nFaded--
-      // might have to light it if in solo mode
-      if (this.nLit > 0) {
-        this.lightBulb(i)
-        this.lit[i] = true
-        this.nLit++
-      }
-    }
-  },
-
-  bulbClicked(i) {
-    // when do i fade all others?
-    if (this.lit[i]) {
-      this.unLightBulb(i)
-      this.fadeEye(i)
-      this.fadePath(i)
-      this.lit[i] = false
-      this.unfaded[i] = false
-      this.nLit--
-    } else {
-      this.lightBulb(i)
-      this.lightEye(i)
-      this.lightPath(i)
-      this.lit[i] = true
-      this.unfaded[i] = true
-      this.nLit++
-      if (this.nLit < 2) {
-        // need to fade all eyes/paths, apart from i of course!
-        this.fadeAllEyes()
-        this.lightEye(i)
-        this.fadeAllPaths()
-        this.lightPath(i)
-        for (var j=0, l=this.nCands; j<l; j++) {
-          this.unfaded[j] = true
-        }
-        this.unfaded[i] = true
-        this.lit[i] = false
-      }
-    }
-  },
-  
-  
-  
-  
-  fadeAllPaths() {
-    for (var i=0, l=this.nCands; i<l; i++) {
-      this.fadePath(i)
-    }
-  },
-
-  
-
-  
-
-  changeButton(i, opac, dotted) {
-    var btn = 'cand' + i
-    this.$(btn).style.opacity = opac
-    this.$(btn).style.border = '3px solid transparent'         
-    if (dotted) {
-      this.$(btn).style.border = '3px dotted #567'    
-    } 
-  },
-
-  lightBulb(i) {
-    this.$('bulb'+i).style.opacity = '1'    
-  },
-
-  unLightBulb(i) {
-    // this.$('bulb'+i).style.background = this.candColors[i]
-    this.$('bulb'+i).style.opacity = '0.33'    
-  },
 
   myXY(x, y) {
     return 'translate(' + x + ',' + y + ')'
