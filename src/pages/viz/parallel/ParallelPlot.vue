@@ -252,7 +252,18 @@ methods: {
   },
 
   axisDragged(i) {
-    console.log('axis dragged', i)
+    // console.log('axis dragged', i)
+
+    // move circle3 group - nope - each has a y
+    // d3.select('.circle3')
+      // .attr('cx', d3.event.x)
+      // .attr('cy', d3.event.x)
+    
+    // select each circle individually by id
+    // d3.select('#spends0')
+    d3.selectAll('.spends')
+      .attr('cx', d3.event.x)
+      // .attr('cy', cy)
   },
 
 
@@ -284,61 +295,61 @@ methods: {
     return 'translate(' + x + ',' + y + ')'
   },
 
-  testDrag() {
-    // add a circle (or two) to drag
-    var drag = d3.drag()
-                .on('drag', moveBlackCircle)
+  // testDrag() {
+  //   // add a circle (or two) to drag
+  //   var drag = d3.drag()
+  //               .on('drag', moveBlackCircle)
     
-    this.svg
-      .append('circle')
-      .attr('id', 'puck')
-      .attr('r', 50)
-      .attr('transform',  "translate(500,500)")
-      .call(drag)
+  //   this.svg
+  //     .append('circle')
+  //     .attr('id', 'puck')
+  //     .attr('r', 50)
+  //     .attr('transform',  "translate(500,500)")
+  //     .call(drag)
     
-    this.svg
-      .append('circle')
-      .classed('follower', true)
-      .attr('id', 'red')
-      .attr('r', 100)
-      .attr('transform',  "translate(500,700)")
-      .attr('fill', 'red')
+  //   this.svg
+  //     .append('circle')
+  //     .classed('follower', true)
+  //     .attr('id', 'red')
+  //     .attr('r', 100)
+  //     .attr('transform',  "translate(500,700)")
+  //     .attr('fill', 'red')
 
-    this.svg
-      .append('circle')
-      .classed('follower', true)      
-      .attr('id', 'blue')
-      .attr('r', 75)
-      .attr('transform',  "translate(500,100)")
-      .attr('fill', 'blue')
+  //   this.svg
+  //     .append('circle')
+  //     .classed('follower', true)      
+  //     .attr('id', 'blue')
+  //     .attr('r', 75)
+  //     .attr('transform',  "translate(500,100)")
+  //     .attr('fill', 'blue')
 
 
-    function moveBlackCircle(d) {
-      // console.log(d3.event)
-      var x = d3.event.x
-      var y = d3.event.y
+  //   function moveBlackCircle(d) {
+  //     // console.log(d3.event)
+  //     var x = d3.event.x
+  //     var y = d3.event.y
 
-      var c1y = 500
+  //     var c1y = 500
 
-      d3.select(this)      
-        .attr('transform', function (d) {
-          return 'translate(' + x + ', ' + c1y + ')'
-      })
+  //     d3.select(this)      
+  //       .attr('transform', function (d) {
+  //         return 'translate(' + x + ', ' + c1y + ')'
+  //     })
 
-      // must send event - else confusion with 'this'
-      EventBus.$emit('foo', 3, true)
-    }
-  },
+  //     // must send event - else confusion with 'this'
+  //     EventBus.$emit('foo', 3, true)
+  //   }
+  // },
     
-  moveOtherCircles() {
-    var blue = d3.select('#blue')
-    var blueY = 100
-    blue.attr('transform', this.myXY(d3.event.x, blueY))
+  // moveOtherCircles() {
+  //   var blue = d3.select('#blue')
+  //   var blueY = 100
+  //   blue.attr('transform', this.myXY(d3.event.x, blueY))
 
-    var red = d3.select('#red')
-    var redY = 700
-    red.attr('transform', this.myXY(d3.event.x, redY))
-  }
+  //   var red = d3.select('#red')
+  //   var redY = 700
+  //   red.attr('transform', this.myXY(d3.event.x, redY))
+  // }
 
 } // end methods
 
