@@ -15,15 +15,28 @@ import {EventBus} from '../../../main'
 export default {
 
 mounted() {
+  EventBus.$on('dimPath', (i, yesNo) => {
+    this.dimPath(i, yesNo)
+  })
+  EventBus.$on('flashPath', (i, yesNo) => {
+    this.flashPath(i, yesNo)
+  })
+  EventBus.$on('fatPath', (i, yesNo) => {
+    this.fatPath(i, yesNo)
+  })
+  EventBus.$on('foo', (i) => {
+    this.moveOtherCircles(i)
+  })
   this.main()
 },
+
 
 data() {
   return {
     dimNames: [],   // could be computed from superdata
     nDims: 0, nCands: 0,
     svg:{}, chartGrp: {},
-    svgHeightRatio: 0.99, svgWidthRatio: 0.83,  // fractions of window 
+    svgHeightRatio: 0.99, svgWidthRatio: 0.8,  // fractions of window 
     margin: 60, // 2*30, 
     headerHeight: 100,
     windowW: window.innerWidth, windowH: window.innerHeight,
@@ -39,46 +52,24 @@ computed: {
 
 methods: {
   main() {
-    this.setupEventBus()
-    this.setChartSize()
+    this.initChart()
     
-    this.calcDimsScales()    
-    this.calcCandsXYs()
+    const dims = this.calcDimsScales()    
+    const cands = this.calcCandsScales()
+    const allData = {cands, dims}
+    this.$store.dispatch('setSelectedData', allData)  // ??
     
-    // const allData = {cands, dims}
-    // // this.$store.dispatch('setSelectedData', allData)  // ??
-    
-    this.plotAxes()
-    this.plotPaths()
+    this.setupChart()
     this.plotCircles()
+    this.plotPaths()
 
-    this.makeAxesDraggable()
-    // this.testDrag()
+    this.testDrag()
   },
 
-  setupEventBus() {
-    EventBus.$on('dimPath', (i, yesNo) => {
-      this.dimPath(i, yesNo)
-    })
-
-    EventBus.$on('flashPath', (i, yesNo) => {
-      this.flashPath(i, yesNo)
-    })
-
-    EventBus.$on('fatPath', (i, yesNo) => {
-      this.fatPath(i, yesNo)
-    })
-
-    EventBus.$on('axisDragged', (i) => {
-      this.axisDragged(i)
-    })
-  },
-
-  // set svg and chart size
-  setChartSize() {  // todo chart factory?
+  initChart() {  // todo chart factory?
+    // set size of svg 
     const svgHeight = Math.round((this.windowH - this.headerHeight) * this.svgHeightRatio)
     const svgWidth = Math.round(this.windowW * this.svgWidthRatio)
-    
     this.chartHeight = svgHeight - this.margin
     this.chartWidth = svgWidth - this.margin
     
@@ -88,12 +79,12 @@ methods: {
                   .attr('width', svgWidth)
     
     // drawable area of chart, inside the margin
-    this.chartGrp = this.svg.append('g')
-                        .attr('class', 'chart')
-                        .attr('transform', this.myXY(this.margin/2, this.margin/2))
+    this.chartGrp = this.svg
+                        .append('g')
+                          .attr('class', 'chart')
+                          .attr('transform', this.myXY(this.margin/2, this.margin/2))
   },
 
-  // for each dim, make scale, axis and x/y values
   calcDimsScales() {
     const dims = this.$SelectedData.dims
     this.nDims = dims.length
@@ -122,8 +113,8 @@ methods: {
     return dims
   },
 
-  // for each cand, calc x/y values 
-  calcCandsXYs() {
+  calcCandsScales() {
+    // for each cand, calc x/y from scales and candScores
     const cands = this.$SelectedData.cands
     this.nCands = cands.length
     const dims = this.$SelectedData.dims
@@ -145,15 +136,15 @@ methods: {
     return cands
   },
 
-  // for each dim, add axis
-  plotAxes() {
+  setupChart() {
+    // setup axes
     const axesGrp = this.chartGrp.append('g')
-                        // .attr('class', 'axes')
+                        .attr('class', 'axes')
  
     // setup shared x scale and axis
     this.xScale = d3.scalePoint()
-                    .domain(this.dimNames)
-                    .range([0, this.chartWidth])
+                      .domain(this.dimNames)
+                      .range([0, this.chartWidth])
 
     const xAxis = d3.axisBottom(this.xScale)
                     .tickPadding(5)
@@ -164,23 +155,47 @@ methods: {
             .call(xAxis)
 
     const yAxesGrp = axesGrp.append('g')
-                      .attr('id', 'yAxes')
+                      .attr('class', 'yAxes')
 
     const dims = this.$SelectedData.dims
     dims.forEach((dimObj) => {
-      yAxesGrp.append('g')
-              .attr('class', 'yAxis')
-              .attr('id', 'yAxis' + dimObj.key)
-              .attr('transform', this.myXY(this.chartWidth * dimObj.key / (this.nDims - 1), 0))
+       yAxesGrp.append('g')
+              .attr('class', 'yAxis' + dimObj.key)
               .call(dimObj.yAxis)
+              .attr('transform', this.myXY(this.chartWidth * dimObj.key / (this.nDims - 1), 0))
     })
 
-  },
+    // add a new group for circles
+    this.circlesGrp = this.chartGrp.append('g')
+                              .attr('class', 'circles')
 
-  // for each cand, plot path
-  plotPaths() {
+    // and then the paths
     this.pathsGrp = this.chartGrp.append('g')
                               .attr('class', 'paths')
+  },
+
+  plotCircles() {
+    // for each dim, plot circles
+    const dims = this.$SelectedData.dims
+
+    dims.forEach((dimO, dimN) => {
+      // plot points on axis for dimension scores
+      this.circlesGrp.append('g')
+          .attr('class', 'circle' + dimN)
+            .selectAll('circle.' + dimO.dimName)                        
+            .data(d3.range(this.nCands))                           
+              .enter()
+              .append('circle')
+                .attr('class', () => dimO.dimName)                
+                .attr('id', (d, cand) => dimO.dimName + cand)                
+                .attr('cx', () => this.chartWidth * dimN / (dims.length - 1))
+                .attr('cy', (d, cand) =>  dimO.yVals[cand])
+                .attr('r', '5')
+                .attr('fill', dimO.dimColor)
+    })
+  },
+
+  plotPaths() {
     let selectedCands = this.$SelectedData.cands
 
     // path generator to build line
@@ -203,59 +218,6 @@ methods: {
               .on('click', (d) =>  this.dim(c))
     }) 
   }, 
-
-  // for each dim, plot circles
-  plotCircles() {
-    const dims = this.$SelectedData.dims
-
-    this.circlesGrp = this.chartGrp.append('g')
-                              .attr('class', 'circles')
-
-    dims.forEach((dimO, dimN) => {
-      // plot points on axis for dimension scores
-      this.circlesGrp.append('g')
-          .attr('class', 'circle' + dimN)
-            .selectAll('circle.' + dimO.dimName)                        
-            .data(d3.range(this.nCands))                           
-              .enter()
-              .append('circle')
-                .attr('class', () => dimO.dimName)                
-                .attr('id', (d, cand) => dimO.dimName + cand)                
-                .attr('cx', () => this.chartWidth * dimN / (dims.length - 1))
-                .attr('cy', (d, cand) =>  dimO.yVals[cand])
-                .attr('r', '5')
-                .attr('fill', dimO.dimColor)
-    })
-  },
-
-
-  makeAxesDraggable() {
-    var axisDrag = d3.drag()
-                      .on('drag', moveAxis)
-  
-    this.svg.selectAll('.yAxis')
-            .call(axisDrag)
-
-    function moveAxis() {
-      var x = d3.event.x
-
-      d3.select(this)      
-        .attr('transform', function () {
-          return 'translate(' + x + ')'
-      })
-
-      const axisN = this.id.slice(5)  // id = yAxisN
-      
-      // send event to move circles
-      EventBus.$emit('axisDragged', axisN)
-    }
-  },
-
-  axisDragged(i) {
-    console.log('axis dragged', i)
-  },
-
-
 
   dim(i) {
     this.dimPath(i, true)
@@ -287,7 +249,7 @@ methods: {
   testDrag() {
     // add a circle (or two) to drag
     var drag = d3.drag()
-                .on('drag', moveBlackCircle)
+                .on('drag', moveBlackCircle)  // how to pass args?
     
     this.svg
       .append('circle')
@@ -318,29 +280,52 @@ methods: {
       var x = d3.event.x
       var y = d3.event.y
 
+      var c1x = 500
       var c1y = 500
 
+      var cYs = [700, 100]
+      var c = -1
+
       d3.select(this)      
-        .attr('transform', function (d) {
-          return 'translate(' + x + ', ' + c1y + ')'
-      })
+        .attr("transform", function (d) {
+          // c1x = this.transform['baseVal']['0']['matrix']['e']  // really?
+          // console.log('x', c1x, d3.event.dx)
+          return "translate(" + x + ", " + c1y + ")"
+        })
+
+      // this.moveOtherCircles()
+      // var blue = d3.select('#blue')
+      // var blueY = 100
+      // blue.attr("transform", this.myXY(x, blueY))
 
       // must send event - else confusion with 'this'
       EventBus.$emit('foo', 3, true)
+
+      //qq - can't use this in normal vue fashion to call functions or get vars
+      // var blue = d3.select('#blue')
+      // var blueY = 100
+
+      // blue.attr('transform', 'translate(' + d3.event.x + ',' + blueY +')')
+
     }
+
+
+    // dunno how to do this with selectAll
+    // plan B - loop over each circle, via id's?
+    // var blue = d3.select('#blue')
+    // var blueY = blue.transform['baseVal']['0']['matrix']['f']
+    // console.log(blue, blueY)          
+
   },
     
   moveOtherCircles() {
     var blue = d3.select('#blue')
     var blueY = 100
-    blue.attr('transform', this.myXY(d3.event.x, blueY))
 
-    var red = d3.select('#red')
-    var redY = 700
-    red.attr('transform', this.myXY(d3.event.x, redY))
+    blue.attr('transform', this.myXY(d3.event.x, blueY))
   }
 
-} // end methods
+}
 
 }
 </script>
