@@ -28,6 +28,7 @@ data() {
     headerHeight: 100,
     windowW: window.innerWidth, windowH: window.innerHeight,
     chartHeight: 0, chartWidth: 0,
+    myLine: {}
   }
 },
 
@@ -53,7 +54,6 @@ methods: {
     this.plotCircles()
 
     this.makeAxesDraggable()
-    // this.testDrag()
   },
 
   setupEventBus() {
@@ -113,6 +113,8 @@ methods: {
 
         const yAxis = d3.axisLeft(yScale)
       
+        
+
         dimD.xValue = xValue
         dimD.yScale = yScale
         dimD.yAxis = yAxis
@@ -129,6 +131,7 @@ methods: {
     const dims = this.$SelectedData.dims
 
     cands.forEach((cand) => {
+      cand.points = []
       const yVals = []
       const xVals = []
 
@@ -136,19 +139,21 @@ methods: {
         var valY = Math.round(dims[j].yScale(score))
         yVals.push(valY)
         var candX = Math.round(this.chartWidth * j / (this.nDims - 1))
-        xVals.push(candX)        
+        xVals.push(candX)
+        cand.points.push([candX, valY])        
       })
 
       cand.yVals = yVals
       cand.xVals = xVals
     })
+    
     return cands
   },
 
   // for each dim, add axis
   plotAxes() {
     const axesGrp = this.chartGrp.append('g')
-                        // .attr('class', 'axes')
+                        .attr('class', 'axes')
  
     // setup shared x scale and axis
     this.xScale = d3.scalePoint()
@@ -179,30 +184,48 @@ methods: {
 
   // for each cand, plot path
   plotPaths() {
-    this.pathsGrp = this.chartGrp.append('g')
-                              .attr('class', 'paths')
     let selectedCands = this.$SelectedData.cands
 
     // path generator to build line
-    const line = d3.line()
-                    .x((d, i) => (this.chartWidth*i/(this.nDims - 1)))
-                    .y(d => d)
+    this.myLine = d3.line()
                     .curve(d3.curveMonotoneX)
+    
+    this.pathsGrp = this.chartGrp.append('g')
+                        .attr('class', 'paths')
 
-    // append paths for each candidate - todo use enter() etc?
     selectedCands.forEach((cand, c) => {
       this.pathsGrp.append('path')
-              .attr('d', line(cand.yVals))
-              .attr('class', 'path')
-              .attr('id', 'path' + c)
-              .attr('fill', 'none')
-              .attr('stroke', cand.colour)
-              .attr('stroke-width', '5px')
-              .on('mouseover', (d) => this.flash(c, true))
-              .on('mouseout', (d) => this.flash(c, false))
-              .on('click', (d) =>  this.dim(c))
-    }) 
-  }, 
+        .attr('d', this.myLine(cand.points))
+        .attr('id', 'path' + c)
+        .attr('class', 'path')
+        .attr('stroke', cand.colour)
+          .on('mouseover', () => this.flash(c, true))
+          .on('mouseout', () => this.flash(c, false))
+          .on('click', () => this.dim(c))
+    })
+    
+  },
+
+  moveAllPaths(dim, x) {
+    let cands = this.$SelectedData.cands
+    let candsL = cands.length
+    
+    for (var c=0; c<candsL; c++) {
+      this.movePath(dim, x, c)
+    }
+
+  },
+
+  movePath(path, x, cand) {
+    // console.log('p,x,cand', path, x, cand)
+    const points = this.$SelectedData.cands[cand].points
+    points[path][0]  = x
+
+    d3.select('#path' + cand)
+       .transition()
+       .duration(20)
+        .attr('d', this.myLine(points))
+  },
 
   // for each dim, plot circles
   plotCircles() {
@@ -228,7 +251,6 @@ methods: {
     })
   },
 
-
   makeAxesDraggable() {
     var axisDrag = d3.drag()
                       .on('drag', moveAxis)
@@ -251,22 +273,18 @@ methods: {
     }
   },
 
+  // move circles and paths
   axisDragged(i) {
-    // console.log('axis dragged', i)
+    // select circles by class
+    const cClass = '.' + this.dimNames[i]
+    const x = d3.event.x
 
-    // move circle3 group - nope - each has a y
-    // d3.select('.circle3')
-      // .attr('cx', d3.event.x)
-      // .attr('cy', d3.event.x)
-    
-    // select each circle individually by id
-    // d3.select('#spends0')
-    d3.selectAll('.spends')
+    d3.selectAll(cClass)
       .attr('cx', d3.event.x)
-      // .attr('cy', cy)
+
+    // okay what about the paths?
+    this.moveAllPaths(i, x)
   },
-
-
 
   dim(i) {
     this.dimPath(i, true)
@@ -293,63 +311,7 @@ methods: {
 
   myXY(x, y) {
     return 'translate(' + x + ',' + y + ')'
-  },
-
-  // testDrag() {
-  //   // add a circle (or two) to drag
-  //   var drag = d3.drag()
-  //               .on('drag', moveBlackCircle)
-    
-  //   this.svg
-  //     .append('circle')
-  //     .attr('id', 'puck')
-  //     .attr('r', 50)
-  //     .attr('transform',  "translate(500,500)")
-  //     .call(drag)
-    
-  //   this.svg
-  //     .append('circle')
-  //     .classed('follower', true)
-  //     .attr('id', 'red')
-  //     .attr('r', 100)
-  //     .attr('transform',  "translate(500,700)")
-  //     .attr('fill', 'red')
-
-  //   this.svg
-  //     .append('circle')
-  //     .classed('follower', true)      
-  //     .attr('id', 'blue')
-  //     .attr('r', 75)
-  //     .attr('transform',  "translate(500,100)")
-  //     .attr('fill', 'blue')
-
-
-  //   function moveBlackCircle(d) {
-  //     // console.log(d3.event)
-  //     var x = d3.event.x
-  //     var y = d3.event.y
-
-  //     var c1y = 500
-
-  //     d3.select(this)      
-  //       .attr('transform', function (d) {
-  //         return 'translate(' + x + ', ' + c1y + ')'
-  //     })
-
-  //     // must send event - else confusion with 'this'
-  //     EventBus.$emit('foo', 3, true)
-  //   }
-  // },
-    
-  // moveOtherCircles() {
-  //   var blue = d3.select('#blue')
-  //   var blueY = 100
-  //   blue.attr('transform', this.myXY(d3.event.x, blueY))
-
-  //   var red = d3.select('#red')
-  //   var redY = 700
-  //   red.attr('transform', this.myXY(d3.event.x, redY))
-  // }
+  },  
 
 } // end methods
 
