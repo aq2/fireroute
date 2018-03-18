@@ -131,7 +131,7 @@ methods: {
 
 #list
   background $g5
-  padding 1rem
+  padding-left 1rem
   flex-shrink 0
   
 // need to refer to main.styl to change chart css!

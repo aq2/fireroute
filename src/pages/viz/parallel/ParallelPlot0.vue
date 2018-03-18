@@ -23,7 +23,11 @@ data() {
     dimNames: [],   // could be computed from superdata
     nDims: 0, nCands: 0,
     svg:{}, chartGrp: {},
-    svgHeightRatio: 0.99, svgWidthRatio: 0.83,  // fractions of window
+      // fractions of window
+    svgHeightRatio: 0.99, 
+    svgWidthRatio: 0.83,
+    marge: { top: 10, right: 50, bottom: 30, left: 50 },
+    buttonW: 200,
     margin: 60, // 2*30, 
     headerHeight: 100,
     windowW: window.innerWidth, windowH: window.innerHeight,
@@ -50,7 +54,6 @@ methods: {
     // // this.$store.dispatch('setSelectedData', allData)  // ??
     
     this.plotAxes()
-    this.plotDimLabels()
     this.plotPaths()
     this.plotCircles()
 
@@ -78,10 +81,10 @@ methods: {
   // set svg and chart size
   setChartSize() {  // todo chart factory?
     const svgHeight = Math.round((this.windowH - this.headerHeight) * this.svgHeightRatio)
-    const svgWidth = Math.round(this.windowW * this.svgWidthRatio)
+    const svgWidth = Math.round(this.windowW) - this.buttonW
     
-    this.chartHeight = svgHeight - this.margin
-    this.chartWidth = svgWidth - this.margin
+    this.chartHeight = svgHeight - this.marge.top - this.marge.bottom
+    this.chartWidth = svgWidth - this.marge.left - this.marge.right
     
     // the whole svg
     this.svg = d3.select('#mySvg')
@@ -91,7 +94,7 @@ methods: {
     // drawable area of chart, inside the margin
     this.chartGrp = this.svg.append('g')
                         .attr('class', 'chart')
-                        .attr('transform', this.myXY(this.margin/2, this.margin/2))
+                        .attr('transform', this.myXY(this.marge.left, this.marge.top))
   },
 
   // for each dim, make scale, axis and x/y values
@@ -154,18 +157,18 @@ methods: {
     const axesGrp = this.chartGrp.append('g')
                         .attr('class', 'axes')
  
-    // // setup shared x scale and axis
-    // this.xScale = d3.scalePoint()
-    //                 .domain(this.dimNames)
-    //                 .range([0, this.chartWidth])
+    // setup shared x scale and axis
+    this.xScale = d3.scalePoint()
+                    .domain(this.dimNames)
+                    .range([0, this.chartWidth])
 
-    // const xAxis = d3.axisBottom(this.xScale)
-    //                 .tickPadding(5)
+    const xAxis = d3.axisBottom(this.xScale)
+                    .tickPadding(5)
  
-    // axesGrp.append('g')
-    //         .attr('id', 'xAxis')
-    //         .attr('transform', this.myXY(0, this.chartHeight))
-    //         // .call(xAxis)
+    axesGrp.append('g')
+            .attr('id', 'xAxis')
+            .attr('transform', this.myXY(0, this.chartHeight))
+            .call(xAxis)
 
     const yAxesGrp = axesGrp.append('g')
                       .attr('id', 'yAxes')
@@ -179,23 +182,6 @@ methods: {
               .call(dimObj.yAxis)
     })
 
-  },
-
-  // for each dim, label each axis
-  plotDimLabels() {
-     const labelGrp = this.chartGrp.append('g')
-                    .attr('class', 'dimLabels')
-
-    this.dimNames.forEach((name, i) => {
-      // calc x values - we already know xvals?
-      const xPos = this.chartWidth * i / (this.nDims - 1)
-
-      labelGrp.append('text')
-                    .attr('class', 'dimLabel')
-                    .attr('transform', this.myXY( xPos, this.chartHeight + 20))
-                    .text(name)
-                    
-    })
   },
 
   // for each cand, plot path
