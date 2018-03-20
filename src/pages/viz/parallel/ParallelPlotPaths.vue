@@ -54,7 +54,9 @@ methods: {
     this.setChartSize()
         
     this.calcDimsScales()
+    // this.makeDimGroups()
     this.plotAxes()
+    // this.plotDimLabels()
 
     this.calcCandsXYs()
     this.plotPaths()
@@ -83,7 +85,7 @@ methods: {
   },
 
   // set svg and chart size
-  setChartSize() {  
+  setChartSize() {  // todo chart factory?
     const svgHeight = Math.round((this.windowH - this.headerHeight) * this.svgHeightRatio)
     const svgWidth = Math.round(this.windowW * this.svgWidthRatio)
     
@@ -130,6 +132,8 @@ methods: {
             .attr('id', 'dim' + i)
             .attr('class', 'dimGrp')
             .attr('transform', this.myXY(dim.xValue, 0))
+            // .attr('x', dim.xValue)
+            // .attr('y', 0)
               .append('g')
                 .attr('id', 'yAxis' + dim.key)
                 .attr('class', 'yAxis')
@@ -139,13 +143,35 @@ methods: {
                     .attr('y', this.chartHeight + 25)
                     .attr('class', 'label')
                     .attr('text-anchor', () => {
-                      if (i == 0) {return 'start'}
-                      if (i == this.dims.length-1) {return 'end'}
+                      if (i == 0) {
+                        return 'start'
+                      }
+                      if (i == this.dims.length-1) {
+                        return 'end'
+                      }
                       return 'middle'
                     })
     })
 
   },
+
+  // // for each dim, label each axis
+  // plotDimLabels() {
+  //   this.dimNames.forEach((name, i) => { 
+  //     // const xPos = this.chartWidth * i / (this.nDims - 1)
+
+  //     d3.select('#dim' + i)
+  //       .append('label')
+  //         .attr('id', 'label'+i)
+  //         .attr('class', 'dimLabel')
+  //         // .attr('transform', this.myXY( 100, this.chartHeight - 200))
+  //         .attr('x', 300)
+  //         .attr('y', 300)
+  //         .text(name)
+  //         .attr("font-size", "50px")
+  //                .attr("fill", "red")   
+  //   })
+  // },
 
   // for each cand, calc x/y values - needs yScale
   calcCandsXYs() {
@@ -188,6 +214,25 @@ methods: {
     })
   },
 
+  moveAllPaths(dim, x) {
+    let candsL = this.cands.length
+    
+    for (var c=0; c<candsL; c++) {
+      this.movePath(dim, x, c)
+    }
+
+  },
+
+  movePath(path, x, cand) {
+    const points = this.cands[cand].points
+    points[path][0]  = x
+
+    d3.select('#path' + cand)
+       .transition()
+       .duration(20)
+        .attr('d', this.myLine(points))
+  },
+
   // for each dim, plot circles
   plotCircles() {
    const cands = this.cands
@@ -210,54 +255,52 @@ methods: {
   },
 
   makeAxesDraggable() {
-    const axisDrag = d3.drag()
-                      .on('drag', moveAxis)
-                      // .on('end', this.plotCircles())
+    // const axisDrag = d3.drag()
+    //                   .on('drag', moveAxis)
   
+  
+    var dragDimGrp = d3.drag()
+                       .on('drag', function(d, i) {
+                          d3.select(this)
+                            .attr("transform", "translate(" + d3.event.x + ")")
+                        })
+
+
     d3.selectAll('.dimGrp')
-            .call(axisDrag)
-
-    function moveAxis() {
-      d3.select(this) 
-        .attr('transform', function () {
-
-          // check for snap
-          let x = d3.event.x
-          // console.log(x)
-          if (x < 300 || x>700) {
-            console.log('foo')
-          }
+    // d3.selectAll('.yAxis')
+            .call(dragDimGrp)
 
 
-          return 'translate(' + d3.event.x + ')'
-      })
-      const axisN = this.id.slice(3)  // id = dimN
-      EventBus.$emit('axisDragged', axisN)      
-    }
+
+    // function moveAxis() {
+    //   var x = d3.event.x
+    //   var dx = d3.event.dx
+    //   console.log(x, dx, d3.event)
+    //   console.log(this)
+    //   d3.select(this) 
+    //     .attr('transform', function () {
+    //       return 'translate(' + (dx) + ',0)'
+    //   })
+
+    //   const axisN = this.id.slice(5)  // id = yAxisN
+      
+    //   // send event to move circles
+    //   // EventBus.$emit('axisDragged', axisN)
+    // }
   },
 
   // move circles and paths
   axisDragged(i) {
-    this.moveAllPaths(i, d3.event.x)
+    // select circles by class
+    const cClass = '.' + this.dimNames[i]
+    const x = d3.event.x
+
+    d3.selectAll(cClass)
+      .attr('cx', d3.event.x)
+
+    // okay what about the paths?
+    this.moveAllPaths(i, x)
   },
-
-  moveAllPaths(dim, x) {
-    let candsL = this.cands.length
-    
-    for (var c=0; c<candsL; c++) {
-      this.movePath(dim, x, c)
-    }
-  },
-
-  movePath(path, x, cand) {
-    const points = this.cands[cand].points
-    points[path][0]  = x
-
-    d3.select('#path' + cand)
-        .attr('d', this.myLine(points))
-  },
-
-
 
   dim(i) {
     this.dimPath(i, true)
