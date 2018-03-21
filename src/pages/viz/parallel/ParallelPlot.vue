@@ -61,7 +61,7 @@ methods: {
 
     this.plotCircles() // done last to put them on top
 
-    this.makeAxesDraggable()
+    // this.makeAxesDraggable()
   },
 
   setupEventBus() {
@@ -121,29 +121,51 @@ methods: {
 
   // for each dim, add axis
   plotAxes() {
+    const dims = this.dims
+    
     const allDims = d3.select('#chart')
                       .append('g')
                       .attr('id', 'dimensions')
 
-    this.dims.forEach((dim, i) => {
+    dims.forEach((dim, i) => {
       allDims.append('g')
-            .attr('id', 'dim' + i)
-            .attr('class', 'dimGrp')
-            .attr('transform', this.myXY(dim.xValue, 0))
-              .append('g')
-                .attr('id', 'yAxis' + dim.key)
-                .attr('class', 'yAxis')
-                .call(dim.yAxis)
-                  .append('text')
-                    .text(dim.dimName)
-                    .attr('y', this.chartHeight + 25)
-                    .attr('class', 'label')
-                    .attr('text-anchor', () => {
-                      if (i == 0) {return 'start'}
-                      if (i == this.dims.length-1) {return 'end'}
-                      return 'middle'
-                    })
+        .attr('id', 'dim' + i)
+        .attr('class', 'dimGrp')
+        .attr('transform', this.myXY(dim.xValue, 0))
+        .call(d3.drag()
+                .on('drag', moveAxis))
+          .append('g')
+            .attr('id', 'yAxis' + dim.key)
+            .attr('class', 'yAxis')
+            .call(dim.yAxis)
+              .append('text')
+                .text(dim.dimName)
+                .attr('y', this.chartHeight + 25)
+                .attr('class', 'label')
+                .attr('text-anchor', () => { // todo improve
+                  if (i == 0) {return 'start'}
+                  if (i == this.dims.length-1) {return 'end'}
+                  return 'middle'
+                })
     })
+
+    function moveAxis() {
+      // console.table(dims)
+      d3.select(this) 
+        .attr('transform', function () {
+          let x = d3.event.x
+          // check for snap
+          // somehow we need access to vue.this
+          // we're inside plotAxes function so could get its vars - closure
+          // console.log(x)
+          if (x < 300 || x>700) {
+            // console.log('foo')
+          }
+          return 'translate(' + d3.event.x + ')'
+      })
+      const axisN = this.id.slice(3)  // id = dimN
+      EventBus.$emit('axisDragged', axisN)      
+    }
 
   },
 
@@ -209,33 +231,6 @@ methods: {
     })
   },
 
-  makeAxesDraggable() {
-    const axisDrag = d3.drag()
-                      .on('drag', moveAxis)
-                      // .on('end', this.plotCircles())
-  
-    d3.selectAll('.dimGrp')
-            .call(axisDrag)
-
-    function moveAxis() {
-      d3.select(this) 
-        .attr('transform', function () {
-
-          // check for snap
-          let x = d3.event.x
-          // console.log(x)
-          if (x < 300 || x>700) {
-            console.log('foo')
-          }
-
-
-          return 'translate(' + d3.event.x + ')'
-      })
-      const axisN = this.id.slice(3)  // id = dimN
-      EventBus.$emit('axisDragged', axisN)      
-    }
-  },
-
   // move circles and paths
   axisDragged(i) {
     this.moveAllPaths(i, d3.event.x)
@@ -256,8 +251,6 @@ methods: {
     d3.select('#path' + cand)
         .attr('d', this.myLine(points))
   },
-
-
 
   dim(i) {
     this.dimPath(i, true)
