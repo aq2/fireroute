@@ -15,15 +15,23 @@ import {EventBus} from '../../../main'
 export default {
 
 mounted() {
-  this.main()
+  this.setupEventBus()
+  this.setChartSize()
+        
+  this.calcDimsScales()
+  this.plotAxes()
+
+  this.calcCandsXYs()
+  this.plotPaths()
+
+  this.plotCircles()    // done last to put them on top
 },
 
 data() {
   return {
     dimNames: [],
     svgHeightRatio: 0.99, svgWidthRatio: 0.83,  // fractions of window
-    margin: 60, // 2*30, 
-    headerHeight: 100,
+    headerHeight: 100, margin: 60, // 2*30, 
     windowW: window.innerWidth, windowH: window.innerHeight,
     chartHeight: 0, chartWidth: 0,
     myLine: {}
@@ -49,21 +57,6 @@ computed: {
 },
 
 methods: {
-  main() {
-    this.setupEventBus()
-    this.setChartSize()
-        
-    this.calcDimsScales()
-    this.plotAxes()
-
-    this.calcCandsXYs()
-    this.plotPaths()
-
-    this.plotCircles() // done last to put them on top
-
-    // this.makeAxesDraggable()
-  },
-
   setupEventBus() {
     EventBus.$on('dimPath', (i, yesNo) => {
       this.dimPath(i, yesNo)
@@ -79,6 +72,10 @@ methods: {
 
     EventBus.$on('axisDragged', (i) => {
       this.axisDragged(i)
+    })
+
+    EventBus.$on('axisDropped', (i) => {
+      this.axisDropped(i)
     })
   },
 
@@ -107,8 +104,6 @@ methods: {
         const {key, dimName, min, max, scores} = dim
         this.dimNames.push(dimName)
 
-        dim.xValue = Math.round(this.chartWidth * key / (this.nDims - 1))
-
         const yScale = d3.scaleLinear()
                           .domain([min, max])
                           .range([this.chartHeight, 0])
@@ -116,12 +111,17 @@ methods: {
         dim.yScale = yScale
         dim.yAxis = d3.axisLeft(yScale)
         dim.yVals = scores.map(c => Math.round(yScale(c)))
+        dim.xValue = Math.round(this.chartWidth * key / (this.nDims - 1))
     })
   },
 
   // for each dim, add axis
   plotAxes() {
     const dims = this.dims
+    let draggedN, 
+        collided = false
+    let leftN, rightN, xDrag
+    let xRight, xLeft
     
     const allDims = d3.select('#chart')
                       .append('g')
@@ -131,9 +131,11 @@ methods: {
       allDims.append('g')
         .attr('id', 'dim' + i)
         .attr('class', 'dimGrp')
-        .attr('transform', this.myXY(dim.xValue, 0))
+        .attr('transform', this.myXY(dim.xValue))
         .call(d3.drag()
-                .on('drag', moveAxis))
+                .on('drag', moveAxis)
+                .on('start', startMoveAxis)
+                .on('end', endMoveAxis))
           .append('g')
             .attr('id', 'yAxis' + dim.key)
             .attr('class', 'yAxis')
@@ -149,25 +151,53 @@ methods: {
                 })
     })
 
+    // inner functions for closure - no access to vue.this
+    function startMoveAxis() {
+      draggedN = +this.id.slice(3)  // id = dimN, '+' converts to num
+      leftN = draggedN - 1
+      rightN = draggedN + 1
+      xDrag = dims[draggedN].xValue
+      xRight = dims[rightN].xValue
+      xLeft = (draggedN == 0) ? 0: dims[leftN].xValue    
+    }
+    
     function moveAxis() {
-      // console.table(dims)
       d3.select(this) 
         .attr('transform', function () {
           let x = d3.event.x
           // check for snap
-          // somehow we need access to vue.this
-          // we're inside plotAxes function so could get its vars - closure
-          // console.log(x)
-          if (x < 300 || x>700) {
-            // console.log('foo')
+          if (x < xLeft) {
+            collided = true
+            swapAxes(xDrag, xLeft)
           }
           return 'translate(' + d3.event.x + ')'
       })
-      const axisN = this.id.slice(3)  // id = dimN
-      EventBus.$emit('axisDragged', axisN)      
+      EventBus.$emit('axisDragged', draggedN)      
+    }
+
+    function endMoveAxis() {
+      console.log('dN', draggedN)
+      if (!collided) {
+        // move back to original pos
+        d3.select(this) 
+          .transition()
+            .duration(200)
+            .ease(d3.easeBack)
+            .attr('transform', function () {
+              return 'translate(' + xDrag + ')'
+            })
+
+        let dropObj = {draggedN, xDrag}
+        EventBus.$emit('axisDropped', dropObj)      
+      }
+    }
+
+    function swapAxes(xDrag, xLeft) {
+      console.log('collide', xDrag, xLeft)
     }
 
   },
+
 
   // for each cand, calc x/y values - needs yScale
   calcCandsXYs() {
@@ -236,6 +266,13 @@ methods: {
     this.moveAllPaths(i, d3.event.x)
   },
 
+  // move circles and paths
+  axisDropped(dropObj) {
+    console.log('axisDropped', dropObj)
+    const {draggedN, xDrag} = dropObj
+    this.moveAllPaths(draggedN, xDrag)
+  },
+
   moveAllPaths(dim, x) {
     let candsL = this.cands.length
     
@@ -244,9 +281,10 @@ methods: {
     }
   },
 
-  movePath(path, x, cand) {
+  movePath(dim, x, cand) {
     const points = this.cands[cand].points
-    points[path][0]  = x
+    console.log(points, dim)
+    points[dim][0]  = x
 
     d3.select('#path' + cand)
         .attr('d', this.myLine(points))
@@ -276,8 +314,11 @@ methods: {
   },
 
   myXY(x, y) {
+    if (!y) {
+      y = 0
+    }
     return 'translate(' + x + ',' + y + ')'
-  },  
+  },
 
 } // end methods
 
