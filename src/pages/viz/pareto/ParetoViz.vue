@@ -60,6 +60,9 @@ methods: {
     // pViz.style.height = articleH + 'px'
     vizz.style.height = articleH + 'px'
 
+    EventBus.$emit('showCandInfo', true)
+
+
     this.orderAllNodes()
     this.colourAllNodes()
   },

@@ -12,9 +12,10 @@
   #headerLinks
     HeaderLinks
 
-  #candInfo(v-if='vizPage')
+  #candInfo(v-if='showCandInfo')
     CandInfo  
     //- todo based on page number?
+    //- have an event that sets this?
   
   #buttons2
     #search
@@ -25,7 +26,7 @@
         span(class='tooltiptext tooltip-left') what do i do?
         icon(name='question-circle' scale=2)
 
-    #fullscreen-toggle 
+    #fullscreen-toggle
       button(@click='toggleFullScreen' class='tooltip')
         span(class='tooltiptext tooltip-left') toggle fullscreen
         icon(name='window-restore' scale=2)
@@ -49,7 +50,8 @@ components: {
 data() {
   return {
     vizPage: false,
-    sidebarOpen: true
+    sidebarOpen: true,
+    showCandInfo: false
   }
 },
 
@@ -109,14 +111,19 @@ methods: {
     // todo
   }
 
-  },  
-  created() {
-    EventBus.$on('fullScreen', () => {
-      this.goFullScreen()
-    })
-    EventBus.$on('changePage', (pageNo) => {
-      this.vizPage = (pageNo > 6)
-    })
+  },
+
+created() {
+  EventBus.$on('fullScreen', () => {
+    this.goFullScreen()
+  })
+  EventBus.$on('changePage', (pageNo) => {
+    this.vizPage = (pageNo > 6)
+  })
+  EventBus.$on('showCandInfo', (yesNo) => {
+    this.showCandInfo = yesNo
+  })
+    
   }
 }
 
